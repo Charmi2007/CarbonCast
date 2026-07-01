@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -89,7 +89,7 @@ export default function DashboardPage() {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {breakdownData.map((entry, index) => (
+                  {breakdownData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
                 <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} />
                 <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                  {breakdownData.map((entry, index) => (
+                  {breakdownData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>

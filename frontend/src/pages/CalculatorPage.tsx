@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useForm, FormProvider } from 'react-form-hook'; // Wait, let's just use regular react-hook-form correctly
 import { useForm as useHookForm } from 'react-hook-form';
 import axios from 'axios';
 import { Button } from '../components/ui/Button';
@@ -15,8 +14,7 @@ export default function CalculatorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const methods = useHookForm();
-  const { register, handleSubmit, formState: { errors } } = methods;
-
+  const { register, handleSubmit } = methods;
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) setCurrentStep(curr => curr + 1);
   };
