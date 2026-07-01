@@ -53,7 +53,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-4">
           <Button variant="outline" className="gap-2"><Share2 className="w-4 h-4"/> Share</Button>
-          <Button variant="outline" className="gap-2"><Download className="w-4 h-4"/> Download Report</Button>
+          <Button variant="outline" className="gap-2" onClick={() => window.open(`http://localhost:5000/api/v1/report/${id}`, '_blank')}><Download className="w-4 h-4"/> Download Report</Button>
         </div>
       </div>
 
