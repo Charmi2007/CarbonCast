@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, Github, Linkedin, Twitter } from 'lucide-react';
+import { Github, Linkedin, Twitter } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
@@ -8,9 +8,23 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <Leaf className="w-6 h-6 text-brand-primary" />
-              <span className="font-poppins font-bold text-xl text-brand-text">CarbonCast</span>
+            <Link to="/" className="flex items-center gap-3 mb-4 group">
+              <div className="w-9 h-9 rounded-xl overflow-hidden bg-white border border-brand-border flex items-center justify-center group-hover:border-brand-primary transition-colors">
+                <img 
+                  src="/logo.jpg" 
+                  alt="CarbonCast Logo Mark" 
+                  className="w-full h-auto object-cover scale-[1.4] -translate-y-[2px]" 
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-poppins font-black tracking-wider text-base leading-none">
+                  <span className="text-brand-text">CΛRBON</span>
+                  <span className="text-brand-primary ml-1">CΛST</span>
+                </span>
+                <span className="text-[7.5px] uppercase tracking-widest text-brand-textSecondary font-semibold mt-0.5">
+                  Measure. Manage. Make a difference.
+                </span>
+              </div>
             </Link>
             <p className="text-brand-textSecondary text-sm max-w-sm mb-6">
               Understand your environmental impact with an intuitive carbon footprint calculator and personalized sustainability insights.

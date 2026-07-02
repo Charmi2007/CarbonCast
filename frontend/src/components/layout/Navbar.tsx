@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Leaf, LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
 
@@ -20,11 +20,23 @@ export const Navbar: React.FC = () => {
     <nav className="w-full bg-brand-bg/80 backdrop-blur-md sticky top-0 z-50 border-b border-brand-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="p-2 bg-brand-surface rounded-xl group-hover:bg-brand-accent/20 transition-colors">
-              <Leaf className="w-6 h-6 text-brand-primary" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-xl overflow-hidden bg-white border border-brand-border flex items-center justify-center group-hover:border-brand-primary transition-colors">
+              <img 
+                src="/logo.jpg" 
+                alt="CarbonCast Logo Mark" 
+                className="w-full h-auto object-cover scale-[1.4] -translate-y-[2px]" 
+              />
             </div>
-            <span className="font-poppins font-bold text-xl text-brand-text">CarbonCast</span>
+            <div className="flex flex-col">
+              <span className="font-poppins font-black tracking-wider text-base leading-none">
+                <span className="text-brand-text">CΛRBON</span>
+                <span className="text-brand-primary ml-1">CΛST</span>
+              </span>
+              <span className="text-[7.5px] uppercase tracking-widest text-brand-textSecondary font-semibold mt-0.5">
+                Measure. Manage. Make a difference.
+              </span>
+            </div>
           </Link>
           
           <div className="hidden md:flex space-x-8 items-center">
