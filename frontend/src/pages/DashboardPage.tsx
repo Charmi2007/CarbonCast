@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import { Download, CheckCircle2, Clipboard, Plus, Trash, History } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
-const COLORS = ['#2E7D32', '#66BB6A', '#A5D6A7', '#F59E0B'];
+const COLORS = ['#10B981', '#34D399', '#6EE7B7', '#F59E0B'];
 
 const getRoastMessage = (score: number, category: string) => {
   if (score < 40 || category === "High") {
@@ -250,35 +250,60 @@ export default function DashboardPage() {
         {/* Breakdown Charts */}
         <Card className="lg:col-span-2">
           <h3 className="text-xl font-bold text-brand-text mb-6">Emissions Breakdown</h3>
-          <div className="h-[250px] flex">
-            <ResponsiveContainer width="50%" height="100%">
-              <PieChart>
-                <Pie
-                  data={breakdownData}
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {breakdownData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
-              </PieChart>
-            </ResponsiveContainer>
-            <ResponsiveContainer width="50%" height="100%">
-              <BarChart data={breakdownData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <XAxis type="number" hide domain={[0, 100]} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} />
-                <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                  {breakdownData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-[250px] flex items-center justify-between gap-8">
+            <div className="relative w-1/2 h-full flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={breakdownData}
+                    innerRadius={65}
+                    outerRadius={85}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {breakdownData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
+                </PieChart>
+              </ResponsiveContainer>
+              
+              {/* Center Summary Label */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-[10px] uppercase font-bold text-brand-textSecondary tracking-widest">Major Source</span>
+                <span className="text-sm font-black text-brand-primary mt-1">
+                  {(() => {
+                    const maxItem = breakdownData.reduce((prev, current) => (prev.value > current.value) ? prev : current);
+                    return maxItem.value > 0 ? maxItem.name : "None";
+                  })()}
+                </span>
+              </div>
+            </div>
+
+            {/* Custom Styled HTML Progress Bars */}
+            <div className="w-1/2 flex flex-col justify-center space-y-4 pr-4">
+              {breakdownData.map((item, index) => (
+                <div key={item.name} className="space-y-1 text-left">
+                  <div className="flex justify-between items-center text-xs font-semibold">
+                    <span className="text-brand-textSecondary font-bold">{item.name}</span>
+                    <span className="text-brand-text font-black" style={{ color: COLORS[index % COLORS.length] }}>
+                      {item.value.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2.5 bg-brand-bg/50 border border-brand-border/60 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-700 ease-out"
+                      style={{ 
+                        width: `${item.value}%`, 
+                        backgroundColor: COLORS[index % COLORS.length],
+                        boxShadow: `0 0 8px ${COLORS[index % COLORS.length]}80`
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </Card>
       </div>
