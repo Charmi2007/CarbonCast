@@ -7,65 +7,59 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 
-const STEPS = ['Personal', 'Home', 'Transportation', 'Food', 'Lifestyle'];
+const STEPS = ['Personal', 'Home Energy', 'Green Commute', 'Sustainable Diet', 'Lifestyle Wins'];
 
 const PRESETS: Record<string, any> = {
   champion: {
-    name: "Eco Guardian",
-    age: "25",
+    name: "Green Guardian",
+    age: "38",
     homeType: "Apartment",
-    peopleCount: 1,
-    electricityBill: 30,
-    acCount: 0,
-    acUsageDaily: 0,
-    primaryTransport: "Walk",
-    weeklyDistance: 10,
-    flightsYearly: 0,
-    diet: "Vegan",
-    chickenMealsWeekly: 0,
-    redMeatMealsMonthly: 0,
-    onlineShoppingMonthly: 1,
-    newClothesMonthly: 0,
-    plasticBottlesWeekly: 0,
-    treesPlanted: 15,
+    peopleCount: 2,
+    cleanEnergyPct: 100,
+    acHoursAvoided: 24,
+    greenTransitKm: 250,
+    fossilTransitKm: 0,
+    flightsAvoided: 5,
+    plantBasedSwaps: 21,
+    redMeatAvoided: 15,
+    ecoShoppingWins: 15,
+    fastFashionAvoided: 5,
+    plasticBottlesAvoided: 30,
+    treesPlanted: 30,
   },
   average: {
-    name: "Average Joe",
-    age: "35",
+    name: "Conscious Actioner",
+    age: "42",
     homeType: "Apartment",
     peopleCount: 3,
-    electricityBill: 120,
-    acCount: 1,
-    acUsageDaily: 3,
-    primaryTransport: "Bus",
-    weeklyDistance: 60,
-    flightsYearly: 1,
-    diet: "Non-Vegetarian",
-    chickenMealsWeekly: 3,
-    redMeatMealsMonthly: 2,
-    onlineShoppingMonthly: 4,
-    newClothesMonthly: 1,
-    plasticBottlesWeekly: 6,
-    treesPlanted: 2,
+    cleanEnergyPct: 50,
+    acHoursAvoided: 16,
+    greenTransitKm: 80,
+    fossilTransitKm: 60,
+    flightsAvoided: 2,
+    plantBasedSwaps: 10,
+    redMeatAvoided: 8,
+    ecoShoppingWins: 5,
+    fastFashionAvoided: 3,
+    plasticBottlesAvoided: 15,
+    treesPlanted: 5,
   },
   heavy: {
-    name: "VIP Jetsetter",
-    age: "42",
+    name: "Sustainability Beginner",
+    age: "47",
     homeType: "Independent House",
     peopleCount: 4,
-    electricityBill: 350,
-    acCount: 4,
-    acUsageDaily: 10,
-    primaryTransport: "Car",
-    weeklyDistance: 300,
-    flightsYearly: 8,
-    diet: "Non-Vegetarian",
-    chickenMealsWeekly: 10,
-    redMeatMealsMonthly: 12,
-    onlineShoppingMonthly: 15,
-    newClothesMonthly: 5,
-    plasticBottlesWeekly: 25,
-    treesPlanted: 0,
+    cleanEnergyPct: 10,
+    acHoursAvoided: 4,
+    greenTransitKm: 20,
+    fossilTransitKm: 200,
+    flightsAvoided: 0,
+    plantBasedSwaps: 2,
+    redMeatAvoided: 1,
+    ecoShoppingWins: 1,
+    fastFashionAvoided: 1,
+    plasticBottlesAvoided: 5,
+    treesPlanted: 1,
   }
 };
 
@@ -81,18 +75,16 @@ export default function CalculatorPage() {
       age: "",
       homeType: "Apartment",
       peopleCount: 2,
-      electricityBill: 100,
-      acCount: 1,
-      acUsageDaily: 4,
-      primaryTransport: "Car",
-      weeklyDistance: 60,
-      flightsYearly: 0,
-      diet: "Non-Vegetarian",
-      chickenMealsWeekly: 2,
-      redMeatMealsMonthly: 2,
-      onlineShoppingMonthly: 3,
-      newClothesMonthly: 1,
-      plasticBottlesWeekly: 5,
+      cleanEnergyPct: 30,
+      acHoursAvoided: 12,
+      greenTransitKm: 50,
+      fossilTransitKm: 80,
+      flightsAvoided: 1,
+      plantBasedSwaps: 7,
+      redMeatAvoided: 4,
+      ecoShoppingWins: 3,
+      fastFashionAvoided: 2,
+      plasticBottlesAvoided: 10,
       treesPlanted: 0,
     }
   });
@@ -100,17 +92,16 @@ export default function CalculatorPage() {
   const { register, handleSubmit, watch, setValue } = methods;
 
   // Watch values reactively for the interactive UI
-  const peopleCount = Number(watch('peopleCount') ?? 2);
-  const electricityBill = Number(watch('electricityBill') ?? 100);
-  const acCount = Number(watch('acCount') ?? 1);
-  const acUsageDaily = Number(watch('acUsageDaily') ?? 4);
-  const weeklyDistance = Number(watch('weeklyDistance') ?? 60);
-  const flightsYearly = Number(watch('flightsYearly') ?? 0);
-  const chickenMealsWeekly = Number(watch('chickenMealsWeekly') ?? 2);
-  const redMeatMealsMonthly = Number(watch('redMeatMealsMonthly') ?? 2);
-  const onlineShoppingMonthly = Number(watch('onlineShoppingMonthly') ?? 3);
-  const newClothesMonthly = Number(watch('newClothesMonthly') ?? 1);
-  const plasticBottlesWeekly = Number(watch('plasticBottlesWeekly') ?? 5);
+  const cleanEnergyPct = Number(watch('cleanEnergyPct') ?? 30);
+  const acHoursAvoided = Number(watch('acHoursAvoided') ?? 12);
+  const greenTransitKm = Number(watch('greenTransitKm') ?? 50);
+  const fossilTransitKm = Number(watch('fossilTransitKm') ?? 80);
+  const flightsAvoided = Number(watch('flightsAvoided') ?? 1);
+  const plantBasedSwaps = Number(watch('plantBasedSwaps') ?? 7);
+  const redMeatAvoided = Number(watch('redMeatAvoided') ?? 4);
+  const ecoShoppingWins = Number(watch('ecoShoppingWins') ?? 3);
+  const fastFashionAvoided = Number(watch('fastFashionAvoided') ?? 2);
+  const plasticBottlesAvoided = Number(watch('plasticBottlesAvoided') ?? 10);
   const treesPlanted = Number(watch('treesPlanted') ?? 0);
 
   const nextStep = () => {
@@ -139,38 +130,78 @@ export default function CalculatorPage() {
   const submitForm = async (data: any) => {
     setIsSubmitting(true);
     try {
-      const formattedData = {
-        personal: { name: data.name || "Anonymous", age: Number(data.age || 30) },
+      // Map positive/avoided metrics back to values needed by the backend emissions predictor
+      const cleanEnergy = Number(data.cleanEnergyPct || 30);
+      const acAvoided = Number(data.acHoursAvoided || 12);
+      const greenKm = Number(data.greenTransitKm || 50);
+      const fossilKm = Number(data.fossilTransitKm || 80);
+      const flightsSaved = Number(data.flightsAvoided || 1);
+      const veggieSwaps = Number(data.plantBasedSwaps || 7);
+      const redMeatAvoidedCount = Number(data.redMeatAvoided || 4);
+      const greenPurchases = Number(data.ecoShoppingWins || 3);
+      const clothesSaved = Number(data.fastFashionAvoided || 2);
+      const plasticAvoided = Number(data.plasticBottlesAvoided || 10);
+      const trees = Number(data.treesPlanted || 0);
+
+      // 1. Home calculations: clean energy reduces standard baseline bill
+      const baselineBill = 220; // Avg bill for 30-50 household
+      const electricityBill = Math.round(baselineBill * (1 - cleanEnergy / 100));
+      const acUsageDaily = Math.max(0, 10 - acAvoided);
+      const acCount = acUsageDaily > 0 ? 2 : 0;
+
+      // 2. Transportation calculations: fossil travel distance
+      const weeklyDistance = fossilKm;
+      let primaryTransport = "Car";
+      if (fossilKm === 0) {
+        primaryTransport = greenKm > 150 ? "Metro" : greenKm > 0 ? "Walk" : "Walk";
+      }
+      const flightsYearly = Math.max(0, 4 - flightsSaved);
+
+      // 3. Diet calculations: meat meal replacements
+      let diet = "Non-Vegetarian";
+      if (veggieSwaps >= 21) diet = "Vegan";
+      else if (veggieSwaps >= 14) diet = "Vegetarian";
+      
+      const chickenMealsWeekly = Math.max(0, 14 - veggieSwaps);
+      const redMeatMealsMonthly = Math.max(0, 15 - redMeatAvoidedCount);
+
+      // 4. Shopping calculations
+      const onlineShoppingMonthly = Math.max(0, 10 - greenPurchases);
+      const newClothesMonthly = Math.max(0, 5 - clothesSaved);
+      const plasticBottlesWeekly = Math.max(0, 25 - plasticAvoided);
+
+      const formattedPayload = {
+        personal: { name: data.name || "Eco Citizen", age: Number(data.age || 40) },
         home: { 
           homeType: data.homeType, 
           peopleCount: Number(data.peopleCount), 
-          electricityBill: Number(data.electricityBill), 
-          acCount: Number(data.acCount), 
-          acUsageDaily: Number(data.acUsageDaily) 
+          electricityBill: electricityBill, 
+          acCount: acCount, 
+          acUsageDaily: acUsageDaily 
         },
         transportation: { 
-          primaryTransport: data.primaryTransport, 
-          weeklyDistance: Number(data.weeklyDistance), 
-          flightsYearly: Number(data.flightsYearly) 
+          primaryTransport: primaryTransport, 
+          weeklyDistance: weeklyDistance, 
+          flightsYearly: flightsYearly 
         },
         food: { 
-          diet: data.diet, 
-          chickenMealsWeekly: Number(data.chickenMealsWeekly), 
-          redMeatMealsMonthly: Number(data.redMeatMealsMonthly) 
+          diet: diet, 
+          chickenMealsWeekly: chickenMealsWeekly, 
+          redMeatMealsMonthly: redMeatMealsMonthly 
         },
         lifestyle: { 
-          onlineShoppingMonthly: Number(data.onlineShoppingMonthly), 
-          newClothesMonthly: Number(data.newClothesMonthly), 
-          plasticBottlesWeekly: Number(data.plasticBottlesWeekly),
-          treesPlanted: Number(data.treesPlanted)
+          onlineShoppingMonthly: onlineShoppingMonthly, 
+          newClothesMonthly: newClothesMonthly, 
+          plasticBottlesWeekly: plasticBottlesWeekly,
+          treesPlanted: trees
         }
       };
 
-      const res = await apiClient.post(`/calculate`, formattedData);
+      const res = await apiClient.post(`/calculate`, formattedPayload);
       const recordId = res.data.data.record._id;
       const record = res.data.data.record;
       
-      // Save last calc to localStorage for achievements
+      // Save last calc to localStorage for achievements/dashboard fallback
       localStorage.setItem("last_calc", JSON.stringify({
         score: record.results.carbonScore,
         primaryTransport: record.transportation.primaryTransport,
@@ -180,7 +211,6 @@ export default function CalculatorPage() {
         treesPlanted: record.lifestyle.treesPlanted,
       }));
 
-      // Add to personal calculation history log
       const myCalcs = JSON.parse(localStorage.getItem("my_calcs") || "[]");
       if (!myCalcs.includes(recordId)) {
         localStorage.setItem("my_calcs", JSON.stringify([...myCalcs, recordId]));
@@ -249,8 +279,8 @@ export default function CalculatorPage() {
   return (
     <div className="max-w-3xl mx-auto py-10">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-brand-text mb-2 text-center">Carbon Footprint Calculator</h1>
-        <p className="text-brand-textSecondary text-center">Estimate your exact annual emissions with our AI-powered model.</p>
+        <h1 className="text-3xl font-bold text-brand-text mb-2 text-center">Sustainability Impact Scorecard</h1>
+        <p className="text-brand-textSecondary text-center">Record your green habits and carbon offsets to calculate your sustainability performance.</p>
       </div>
 
       {/* Progress Bar */}
@@ -284,17 +314,17 @@ export default function CalculatorPage() {
               {currentStep === 0 && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-2xl font-semibold mb-2">Lifestyle Presets (Quick Start)</h2>
-                    <p className="text-xs text-brand-textSecondary mb-4">Select an archetype to instantly populate all questions, or proceed to details manually.</p>
+                    <h2 className="text-2xl font-semibold mb-2">Select Your Sustainability Level (Quick Start)</h2>
+                    <p className="text-xs text-brand-textSecondary mb-4">Choose a preset matching your general lifestyle or manually progress to configure each detail.</p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {Object.keys(PRESETS).map((key) => {
                         const isSelected = presetSelected === key;
-                        const icons: Record<string, string> = { champion: "🌱", average: "🏡", heavy: "🚗" };
-                        const titles: Record<string, string> = { champion: "Eco-Champion", average: "Average Joe", heavy: "High Consumer" };
+                        const icons: Record<string, string> = { champion: "🌱", average: "🏡", heavy: "⚡" };
+                        const titles: Record<string, string> = { champion: "Carbon Neutralist", average: "Eco Improver", heavy: "Green Beginner" };
                         const descs: Record<string, string> = { 
-                          champion: "Bikes/Walks, Vegan, low energy, plants trees.", 
-                          average: "Transit rider, mixed diet, normal shopping & utility.", 
-                          heavy: "SUV driver, heavy flights, steak lover, high shopping." 
+                          champion: "High renewable energy, maximum green commutes, heavy vegan swaps.", 
+                          average: "Partial clean energy, mixed transit swaps, regular plant-based replacements.", 
+                          heavy: "Just getting started with sustainability, lower offsets, high car usage." 
                         };
                         return (
                           <div 
@@ -316,10 +346,11 @@ export default function CalculatorPage() {
                   </div>
 
                   <div className="border-t border-brand-border/60 pt-6">
-                    <h3 className="text-lg font-semibold text-brand-text mb-4">Personal Details (Optional)</h3>
+                    <h3 className="text-lg font-semibold text-brand-text mb-4">Profile Details</h3>
                     <div className="space-y-4">
                       <Input label="Name" {...register('name')} placeholder="Your name" />
-                      <Input label="Age" type="number" {...register('age')} placeholder="Your age" />
+                      <Input label="Age" type="number" {...register('age')} placeholder="e.g. 40" />
+                      <p className="text-[11px] text-brand-textSecondary">CarbonCast is optimized to support sustainability leaders, primarily focusing on ages 30 - 50.</p>
                     </div>
                   </div>
                 </div>
@@ -327,56 +358,46 @@ export default function CalculatorPage() {
 
               {currentStep === 1 && (
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-semibold mb-6">Home Environment</h2>
+                  <h2 className="text-2xl font-semibold mb-6">Home Energy Efficiency</h2>
                   <div className="flex flex-col gap-1.5 mb-6">
-                    <label className="text-sm font-semibold text-brand-text">Home Type</label>
+                    <label className="text-sm font-semibold text-brand-text">Home Configuration</label>
                     <select {...register('homeType')} className="w-full px-4 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:ring-2 focus:ring-brand-primary">
                       <option value="Apartment">Apartment</option>
-                      <option value="Independent House">Independent House</option>
-                      <option value="Hostel">Hostel</option>
-                      <option value="PG">PG</option>
+                      <option value="Independent House">Detached Family House</option>
+                      <option value="Hostel">Shared Space</option>
+                      <option value="PG">Townhouse</option>
                     </select>
                   </div>
 
                   {renderInteractiveSlider(
-                    "Number of People in Household",
+                    "Household Occupancy",
                     "peopleCount",
-                    peopleCount,
+                    watch('peopleCount') ?? 2,
                     1,
                     10,
                     1,
-                    peopleCount === 1 ? "Living Single" : peopleCount <= 3 ? "Small Household" : peopleCount <= 5 ? "Medium Household" : "Large Household"
+                    "Total family members sharing home energy"
                   )}
 
                   {renderInteractiveSlider(
-                    "Average Monthly Electricity Bill",
-                    "electricityBill",
-                    electricityBill,
+                    "Clean Energy Source Ratio",
+                    "cleanEnergyPct",
+                    cleanEnergyPct,
                     0,
-                    500,
+                    100,
                     5,
-                    electricityBill < 50 ? "Low Usage" : electricityBill <= 150 ? "Moderate Usage" : electricityBill <= 300 ? "High Usage" : "Very High Usage",
-                    "$"
+                    cleanEnergyPct === 100 ? "100% Clean/Solar powered" : cleanEnergyPct >= 50 ? "Mostly renewable power" : cleanEnergyPct >= 20 ? "Partial solar offset" : "Standard power grid",
+                    "%"
                   )}
 
                   {renderInteractiveSlider(
-                    "Number of Air Conditioners (ACs)",
-                    "acCount",
-                    acCount,
-                    0,
-                    8,
-                    1,
-                    acCount === 0 ? "No AC units" : acCount === 1 ? "1 AC unit" : `${acCount} AC units`
-                  )}
-
-                  {renderInteractiveSlider(
-                    "Daily AC Usage",
-                    "acUsageDaily",
-                    acUsageDaily,
+                    "Heating/Cooling Hours Saved Daily",
+                    "acHoursAvoided",
+                    acHoursAvoided,
                     0,
                     24,
                     1,
-                    acUsageDaily === 0 ? "No AC use" : acUsageDaily <= 3 ? "Light use" : acUsageDaily <= 8 ? "Moderate use" : "Heavy use",
+                    acHoursAvoided >= 20 ? "Passive heating/cooling only" : acHoursAvoided >= 12 ? "Smart thermostat & high efficiency" : acHoursAvoided >= 6 ? "Moderate conservation efforts" : "Frequent climate control usage",
                     "h"
                   )}
                 </div>
@@ -384,123 +405,110 @@ export default function CalculatorPage() {
 
               {currentStep === 2 && (
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-semibold mb-6">Transportation</h2>
-                  <div className="flex flex-col gap-1.5 mb-6">
-                    <label className="text-sm font-semibold text-brand-text">Primary Mode of Transport</label>
-                    <select {...register('primaryTransport')} className="w-full px-4 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:ring-2 focus:ring-brand-primary">
-                      <option value="Car">Car</option>
-                      <option value="Bike">Bike</option>
-                      <option value="Bus">Bus</option>
-                      <option value="Train">Train</option>
-                      <option value="Metro">Metro</option>
-                      <option value="Walk">Walk</option>
-                      <option value="Cycle">Cycle</option>
-                    </select>
-                  </div>
+                  <h2 className="text-2xl font-semibold mb-6">Transportation Swaps</h2>
 
                   {renderInteractiveSlider(
-                    "Weekly Travel Distance",
-                    "weeklyDistance",
-                    weeklyDistance,
+                    "Weekly Green Commutes (Walk, Cycle, Transit, EV)",
+                    "greenTransitKm",
+                    greenTransitKm,
                     0,
                     1000,
                     10,
-                    weeklyDistance < 20 ? "Rare travel" : weeklyDistance <= 100 ? "Short commute" : weeklyDistance <= 250 ? "Moderate commute" : weeklyDistance <= 500 ? "Long commute" : "Extreme travel",
+                    greenTransitKm > 200 ? "Zero-emissions commute leader" : greenTransitKm >= 80 ? "Frequent eco transit choice" : greenTransitKm >= 20 ? "Occasional green travel" : "Minimal sustainable transit",
                     "km"
                   )}
 
                   {renderInteractiveSlider(
-                    "Number of Flights per Year (Round trips)",
-                    "flightsYearly",
-                    flightsYearly,
+                    "Weekly Fossil Fuel Driving Distance",
+                    "fossilTransitKm",
+                    fossilTransitKm,
                     0,
-                    20,
+                    1000,
+                    10,
+                    fossilTransitKm === 0 ? "No fossil fuel travel!" : fossilTransitKm <= 100 ? "Low gas usage" : fossilTransitKm <= 300 ? "Moderate gas usage" : "High gas travel footprint",
+                    "km"
+                  )}
+
+                  {renderInteractiveSlider(
+                    "Flight Trips Replaced / Avoided per Year",
+                    "flightsAvoided",
+                    flightsAvoided,
+                    0,
+                    5,
                     1,
-                    flightsYearly === 0 ? "No flights" : flightsYearly <= 2 ? "Occasional flyer" : flightsYearly <= 5 ? "Frequent flyer" : "Very frequent flyer"
+                    flightsAvoided === 5 ? "Fully offset flights / Virtual work only" : flightsAvoided >= 3 ? "Replaced long trips with high-speed rail" : flightsAvoided >= 1 ? "Reduced non-essential air travel" : "Standard flight usage"
                   )}
                 </div>
               )}
 
               {currentStep === 3 && (
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-semibold mb-6">Food & Diet</h2>
-                  <div className="flex flex-col gap-1.5 mb-6">
-                    <label className="text-sm font-semibold text-brand-text">Diet Preference</label>
-                    <select {...register('diet')} className="w-full px-4 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-brand-text focus:ring-2 focus:ring-brand-primary">
-                      <option value="Vegan">Vegan</option>
-                      <option value="Vegetarian">Vegetarian</option>
-                      <option value="Eggetarian">Eggetarian</option>
-                      <option value="Non-Vegetarian">Non-Vegetarian</option>
-                    </select>
-                  </div>
+                  <h2 className="text-2xl font-semibold mb-6">Sustainable Diet Swaps</h2>
 
                   {renderInteractiveSlider(
-                    "Chicken/Poultry Meals per Week",
-                    "chickenMealsWeekly",
-                    chickenMealsWeekly,
+                    "Plant-Based Swaps (Meat Alternatives Chosen) per Week",
+                    "plantBasedSwaps",
+                    plantBasedSwaps,
                     0,
                     21,
                     1,
-                    chickenMealsWeekly === 0 ? "No chicken meals" : chickenMealsWeekly <= 3 ? "Occasional poultry" : chickenMealsWeekly <= 7 ? "Regular poultry" : "Heavy poultry consumption"
+                    plantBasedSwaps >= 21 ? "Fully Plant-Based Diet (Vegan)" : plantBasedSwaps >= 14 ? "Vegetarian focus" : plantBasedSwaps >= 7 ? "Flexitarian lifestyle" : "Low plant swaps"
                   )}
 
                   {renderInteractiveSlider(
-                    "Red Meat Meals (Beef, Lamb, Pork) per Month",
-                    "redMeatMealsMonthly",
-                    redMeatMealsMonthly,
+                    "Red Meat Avoidance (Meals Consciously Replaced) per Month",
+                    "redMeatAvoided",
+                    redMeatAvoided,
                     0,
-                    30,
+                    15,
                     1,
-                    redMeatMealsMonthly === 0 ? "No red meat meals" : redMeatMealsMonthly <= 4 ? "Occasional red meat" : redMeatMealsMonthly <= 10 ? "Regular red meat" : "Heavy red meat consumption"
+                    redMeatAvoided >= 15 ? "Complete red meat avoidance" : redMeatAvoided >= 8 ? "Active beef/lamb reduction" : redMeatAvoided >= 4 ? "Occasional meat replacements" : "Minimal red meat restrictions"
                   )}
                 </div>
               )}
 
               {currentStep === 4 && (
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-semibold mb-6">Lifestyle</h2>
+                  <h2 className="text-2xl font-semibold mb-6">Conscious Lifestyle Wins</h2>
                   
                   {renderInteractiveSlider(
-                    "Online Shopping frequency",
-                    "onlineShoppingMonthly",
-                    onlineShoppingMonthly,
-                    0,
-                    30,
-                    1,
-                    onlineShoppingMonthly <= 1 ? "Rarely shop" : onlineShoppingMonthly <= 5 ? "Occasional shopper" : onlineShoppingMonthly <= 12 ? "Frequent shopper" : "Heavy shopper",
-                    " orders"
-                  )}
-
-                  {renderInteractiveSlider(
-                    "New Clothes bought per Month",
-                    "newClothesMonthly",
-                    newClothesMonthly,
+                    "Eco-Conscious / Local Shopping Choices per Month",
+                    "ecoShoppingWins",
+                    ecoShoppingWins,
                     0,
                     15,
                     1,
-                    newClothesMonthly <= 1 ? "Rarely buy clothes" : newClothesMonthly <= 4 ? "Occasional buyer" : "Frequent buyer",
-                    " items"
+                    ecoShoppingWins >= 12 ? "Circular economy advocate" : ecoShoppingWins >= 6 ? "Prefers local/low package shopping" : ecoShoppingWins >= 2 ? "Occasional green buying" : "Standard commercial packaging"
                   )}
 
                   {renderInteractiveSlider(
-                    "Single-use Plastic Water Bottles per Week",
-                    "plasticBottlesWeekly",
-                    plasticBottlesWeekly,
+                    "Wardrobe Items Avoided / Saved from Fast Fashion per Month",
+                    "fastFashionAvoided",
+                    fastFashionAvoided,
                     0,
-                    50,
+                    5,
                     1,
-                    plasticBottlesWeekly === 0 ? "Never use plastic" : plasticBottlesWeekly <= 5 ? "Occasional use" : plasticBottlesWeekly <= 15 ? "Regular use" : "Heavy bottle use",
-                    " bottles"
+                    fastFashionAvoided >= 5 ? "Slow-fashion minimalist" : fastFashionAvoided >= 3 ? "Sustainable closet cultivator" : fastFashionAvoided >= 1 ? "Avoided impulse clothes buying" : "Standard clothes shopper"
                   )}
 
                   {renderInteractiveSlider(
-                    "Trees Planted per Year",
+                    "Single-Use Plastic Bottles Avoided per Week",
+                    "plasticBottlesAvoided",
+                    plasticBottlesAvoided,
+                    0,
+                    30,
+                    1,
+                    plasticBottlesAvoided >= 25 ? "Zero single-use plastic bottles!" : plasticBottlesAvoided >= 15 ? "Reusable canteen habits" : plasticBottlesAvoided >= 5 ? "Reduced plastic trash" : "Relies on disposable containers"
+                  )}
+
+                  {renderInteractiveSlider(
+                    "Trees Planted or Funded this Year",
                     "treesPlanted",
                     treesPlanted,
                     0,
                     50,
                     1,
-                    treesPlanted === 0 ? "No trees planted" : treesPlanted <= 5 ? "Reforestation Supporter" : treesPlanted <= 15 ? "Active Planter" : "Forest Maker",
+                    treesPlanted >= 30 ? "Forest Creator / Carbon Sink Sponsor" : treesPlanted >= 10 ? "Active Reforester" : treesPlanted >= 2 ? "Backyard Planter" : "No trees funded yet",
                     " trees"
                   )}
                 </div>
@@ -526,7 +534,7 @@ export default function CalculatorPage() {
               )}
             </div>
             <Button type="submit" isLoading={isSubmitting}>
-              {currentStep === STEPS.length - 1 ? 'Calculate My Footprint' : 'Next Step'}
+              {currentStep === STEPS.length - 1 ? 'Save Baseline & Complete Onboarding' : 'Next Step'}
             </Button>
           </div>
         </form>
