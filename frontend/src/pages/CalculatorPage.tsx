@@ -17,6 +17,7 @@ const PRESETS: Record<string, any> = {
     peopleCount: 2,
     cleanEnergyPct: 100,
     acHoursAvoided: 24,
+    waterConserved: 450,
     greenTransitKm: 250,
     fossilTransitKm: 0,
     flightsAvoided: 5,
@@ -25,6 +26,8 @@ const PRESETS: Record<string, any> = {
     ecoShoppingWins: 15,
     fastFashionAvoided: 5,
     plasticBottlesAvoided: 30,
+    organicComposted: 25,
+    plasticAvoidedKg: 9,
     treesPlanted: 30,
   },
   average: {
@@ -34,6 +37,7 @@ const PRESETS: Record<string, any> = {
     peopleCount: 3,
     cleanEnergyPct: 50,
     acHoursAvoided: 16,
+    waterConserved: 200,
     greenTransitKm: 80,
     fossilTransitKm: 60,
     flightsAvoided: 2,
@@ -42,6 +46,8 @@ const PRESETS: Record<string, any> = {
     ecoShoppingWins: 5,
     fastFashionAvoided: 3,
     plasticBottlesAvoided: 15,
+    organicComposted: 12,
+    plasticAvoidedKg: 4,
     treesPlanted: 5,
   },
   heavy: {
@@ -51,6 +57,7 @@ const PRESETS: Record<string, any> = {
     peopleCount: 4,
     cleanEnergyPct: 10,
     acHoursAvoided: 4,
+    waterConserved: 50,
     greenTransitKm: 20,
     fossilTransitKm: 200,
     flightsAvoided: 0,
@@ -59,6 +66,8 @@ const PRESETS: Record<string, any> = {
     ecoShoppingWins: 1,
     fastFashionAvoided: 1,
     plasticBottlesAvoided: 5,
+    organicComposted: 2,
+    plasticAvoidedKg: 1,
     treesPlanted: 1,
   }
 };
@@ -77,6 +86,7 @@ export default function CalculatorPage() {
       peopleCount: 2,
       cleanEnergyPct: 30,
       acHoursAvoided: 12,
+      waterConserved: 150,
       greenTransitKm: 50,
       fossilTransitKm: 80,
       flightsAvoided: 1,
@@ -85,6 +95,8 @@ export default function CalculatorPage() {
       ecoShoppingWins: 3,
       fastFashionAvoided: 2,
       plasticBottlesAvoided: 10,
+      organicComposted: 8,
+      plasticAvoidedKg: 3,
       treesPlanted: 0,
     }
   });
@@ -94,6 +106,7 @@ export default function CalculatorPage() {
   // Watch values reactively for the interactive UI
   const cleanEnergyPct = Number(watch('cleanEnergyPct') ?? 30);
   const acHoursAvoided = Number(watch('acHoursAvoided') ?? 12);
+  const waterConserved = Number(watch('waterConserved') ?? 150);
   const greenTransitKm = Number(watch('greenTransitKm') ?? 50);
   const fossilTransitKm = Number(watch('fossilTransitKm') ?? 80);
   const flightsAvoided = Number(watch('flightsAvoided') ?? 1);
@@ -102,6 +115,8 @@ export default function CalculatorPage() {
   const ecoShoppingWins = Number(watch('ecoShoppingWins') ?? 3);
   const fastFashionAvoided = Number(watch('fastFashionAvoided') ?? 2);
   const plasticBottlesAvoided = Number(watch('plasticBottlesAvoided') ?? 10);
+  const organicComposted = Number(watch('organicComposted') ?? 8);
+  const plasticAvoidedKg = Number(watch('plasticAvoidedKg') ?? 3);
   const treesPlanted = Number(watch('treesPlanted') ?? 0);
 
   const nextStep = () => {
@@ -133,6 +148,7 @@ export default function CalculatorPage() {
       // Map positive/avoided metrics back to values needed by the backend emissions predictor
       const cleanEnergy = Number(data.cleanEnergyPct || 30);
       const acAvoided = Number(data.acHoursAvoided || 12);
+      const waterSaved = Number(data.waterConserved || 150);
       const greenKm = Number(data.greenTransitKm || 50);
       const fossilKm = Number(data.fossilTransitKm || 80);
       const flightsSaved = Number(data.flightsAvoided || 1);
@@ -141,6 +157,8 @@ export default function CalculatorPage() {
       const greenPurchases = Number(data.ecoShoppingWins || 3);
       const clothesSaved = Number(data.fastFashionAvoided || 2);
       const plasticAvoided = Number(data.plasticBottlesAvoided || 10);
+      const wasteComposted = Number(data.organicComposted || 8);
+      const plasticWeightAvoided = Number(data.plasticAvoidedKg || 3);
       const trees = Number(data.treesPlanted || 0);
 
       // 1. Home calculations: clean energy reduces standard baseline bill
@@ -148,6 +166,7 @@ export default function CalculatorPage() {
       const electricityBill = Math.round(baselineBill * (1 - cleanEnergy / 100));
       const acUsageDaily = Math.max(0, 10 - acAvoided);
       const acCount = acUsageDaily > 0 ? 2 : 0;
+      const waterUsage = Math.max(50, 500 - waterSaved); // standard average water is 500L
 
       // 2. Transportation calculations: fossil travel distance
       const weeklyDistance = fossilKm;
@@ -165,10 +184,12 @@ export default function CalculatorPage() {
       const chickenMealsWeekly = Math.max(0, 14 - veggieSwaps);
       const redMeatMealsMonthly = Math.max(0, 15 - redMeatAvoidedCount);
 
-      // 4. Shopping calculations
+      // 4. Shopping & Waste calculations
       const onlineShoppingMonthly = Math.max(0, 10 - greenPurchases);
       const newClothesMonthly = Math.max(0, 5 - clothesSaved);
       const plasticBottlesWeekly = Math.max(0, 25 - plasticAvoided);
+      const organicWaste = Math.max(1.0, 25 - wasteComposted); // standard average organic waste is 25kg
+      const plasticWaste = Math.max(0.5, 10 - plasticWeightAvoided); // standard plastic waste is 10kg
 
       const formattedPayload = {
         personal: { name: data.name || "Eco Citizen", age: Number(data.age || 40) },
@@ -193,7 +214,10 @@ export default function CalculatorPage() {
           onlineShoppingMonthly: onlineShoppingMonthly, 
           newClothesMonthly: newClothesMonthly, 
           plasticBottlesWeekly: plasticBottlesWeekly,
-          treesPlanted: trees
+          treesPlanted: trees,
+          waterUsage: waterUsage,
+          organicWaste: organicWaste,
+          plasticWaste: plasticWaste
         }
       };
 
@@ -400,6 +424,17 @@ export default function CalculatorPage() {
                     acHoursAvoided >= 20 ? "Passive heating/cooling only" : acHoursAvoided >= 12 ? "Smart thermostat & high efficiency" : acHoursAvoided >= 6 ? "Moderate conservation efforts" : "Frequent climate control usage",
                     "h"
                   )}
+
+                  {renderInteractiveSlider(
+                    "Weekly Water Conserved",
+                    "waterConserved",
+                    waterConserved,
+                    0,
+                    500,
+                    10,
+                    waterConserved >= 400 ? "Advanced rainwater / smart greywater recycling" : waterConserved >= 200 ? "Low-flow aerators & short showers" : waterConserved >= 50 ? "Conscious water conservation habits" : "Standard utility water usage",
+                    " L"
+                  )}
                 </div>
               )}
 
@@ -499,6 +534,28 @@ export default function CalculatorPage() {
                     30,
                     1,
                     plasticBottlesAvoided >= 25 ? "Zero single-use plastic bottles!" : plasticBottlesAvoided >= 15 ? "Reusable canteen habits" : plasticBottlesAvoided >= 5 ? "Reduced plastic trash" : "Relies on disposable containers"
+                  )}
+
+                  {renderInteractiveSlider(
+                    "Weekly Organic & Food Waste Composted",
+                    "organicComposted",
+                    organicComposted,
+                    0,
+                    30,
+                    1,
+                    organicComposted >= 25 ? "Composts almost all organic waste" : organicComposted >= 12 ? "Regular composting routine" : organicComposted >= 4 ? "Partially composts food waste" : "No active composting",
+                    " kg"
+                  )}
+
+                  {renderInteractiveSlider(
+                    "Weekly Single-use Plastic Packaging Avoided/Recycled",
+                    "plasticAvoidedKg",
+                    plasticAvoidedKg,
+                    0,
+                    10,
+                    1,
+                    plasticAvoidedKg >= 9 ? "Refill-only/Bulk shopping leader" : plasticAvoidedKg >= 5 ? "Active plastic packaging reduction" : plasticAvoidedKg >= 2 ? "Conscious packaging separation" : "Standard commercial plastic disposal",
+                    " kg"
                   )}
 
                   {renderInteractiveSlider(
