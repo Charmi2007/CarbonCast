@@ -6,6 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
+import { parseGreenWin } from '../utils/winParser';
 
 interface Post {
   id: string;
@@ -27,6 +28,15 @@ export const CommunityPage: React.FC = () => {
   const [category, setCategory] = useState('lifestyle');
   const [carbonSaved, setCarbonSaved] = useState<number>(1.5);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleTextChange = (val: string) => {
+    setText(val);
+    if (val.trim()) {
+      const parsed = parseGreenWin(val);
+      setCategory(parsed.category);
+      setCarbonSaved(parsed.carbonSaved);
+    }
+  };
 
   // Social Profile & Connection States
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
@@ -159,12 +169,21 @@ export const CommunityPage: React.FC = () => {
                 rows={3}
                 placeholder="e.g., Kept AC turned off for 4 hours today during cooling peaks!"
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => handleTextChange(e.target.value)}
                 maxLength={280}
                 required
               />
-              <div className="text-right text-[10px] text-brand-textSecondary mt-1 font-semibold">
-                {text.length}/280
+              <div className="flex justify-between items-center mt-1">
+                {text.trim() ? (
+                  <div className="text-[10px] text-brand-success font-bold flex items-center gap-1 bg-brand-success/10 px-2 py-0.5 rounded-md border border-brand-success/20">
+                    <span>✨ Live Assist: Detected {parseGreenWin(text).icon} {parseGreenWin(text).category.toUpperCase()} offset ({parseGreenWin(text).carbonSaved} kg CO₂)</span>
+                  </div>
+                ) : (
+                  <div></div>
+                )}
+                <div className="text-right text-[10px] text-brand-textSecondary font-semibold">
+                  {text.length}/280
+                </div>
               </div>
             </div>
             

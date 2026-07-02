@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, BarChart3, Sparkles, Flame, 
   MessageSquare, LayoutGrid, Sun, Bike, Utensils, 
-  Check, Compass, Target, ShieldCheck
+  Compass, Target, ShieldCheck
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
+import { parseGreenWin } from '../utils/winParser';
 
 const LandingPage: React.FC = () => {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ const LandingPage: React.FC = () => {
   const [activeArchetype, setActiveArchetype] = useState<'solar' | 'commuter' | 'diet'>('solar');
 
   // "Cast Your Offset" Micro-Action Widget State
-  const [selectedDeed, setSelectedDeed] = useState('walk');
+  const [customDeedText, setCustomDeedText] = useState('');
   const [hasCastWin, setHasCastWin] = useState(false);
 
   // Simulated Live Ticker Data
@@ -52,12 +53,7 @@ const LandingPage: React.FC = () => {
   }, [user]);
 
   const getDeedResult = () => {
-    switch (selectedDeed) {
-      case 'walk': return { saved: "1.5 kg CO₂e", detail: "equivalent to charging 180 smartphones!" };
-      case 'compost': return { saved: "2.8 kg CO₂e", detail: "diverted organic waste from producing toxic methane in landfills!" };
-      case 'diet': return { saved: "3.1 kg CO₂e", detail: "reduced land use and carbon intensity compared to beef or pork!" };
-      default: return { saved: "4.5 kg CO₂e", detail: "saved water footprint and manufacturing supply chain emissions!" };
-    }
+    return parseGreenWin(customDeedText);
   };
 
   return (
@@ -318,25 +314,27 @@ const LandingPage: React.FC = () => {
           <div className="absolute top-0 left-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none"></div>
           
           <h3 className="text-2xl font-black text-brand-text mb-2">Cast Your Offset Today</h3>
-          <p className="text-xs text-brand-textSecondary mb-6 max-w-md mx-auto">Logged a sustainability win today? Select your action below to calculate the impact immediately in real-time.</p>
+          <p className="text-xs text-brand-textSecondary mb-6 max-w-md mx-auto">Logged a sustainability win today? Describe what you did in natural language (e.g. "I rode my bicycle to work") to see the impact instantly!</p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-lg mx-auto mb-6">
-            <select 
-              value={selectedDeed}
+            <input 
+              type="text"
+              placeholder="e.g. Swapped my beef burger for a vegan salad..."
+              value={customDeedText}
               onChange={(e) => {
-                setSelectedDeed(e.target.value);
+                setCustomDeedText(e.target.value);
                 setHasCastWin(false);
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && customDeedText.trim()) setHasCastWin(true);
+              }}
               className="px-4 py-3 rounded-xl border border-brand-border bg-brand-bg text-brand-text text-xs focus:ring-2 focus:ring-brand-primary outline-none flex-grow"
-            >
-              <option value="walk">Walked/cycled to work instead of driving</option>
-              <option value="compost">Composted organic kitchen waste</option>
-              <option value="diet">Substituted meat for vegetarian/vegan meal</option>
-              <option value="clothes">Mended clothing instead of buying new fast-fashion</option>
-            </select>
+            />
             
             <Button 
-              onClick={() => setHasCastWin(true)}
+              onClick={() => {
+                if (customDeedText.trim()) setHasCastWin(true);
+              }}
               className="bg-brand-primary text-white font-bold text-xs px-6 py-3 rounded-xl shadow-md shadow-brand-primary/10 flex items-center justify-center gap-1.5 shrink-0"
             >
               Cast Action
@@ -344,20 +342,22 @@ const LandingPage: React.FC = () => {
           </div>
 
           <AnimatePresence>
-            {hasCastWin && (
+            {hasCastWin && customDeedText.trim() && (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="p-4 bg-brand-success/10 border border-brand-success/20 rounded-2xl max-w-md mx-auto text-left flex gap-3 items-center"
               >
-                <div className="w-8 h-8 rounded-full bg-brand-success/15 border border-brand-success/30 flex items-center justify-center text-brand-success shrink-0">
-                  <Check className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-full bg-brand-success/15 border border-brand-success/30 flex items-center justify-center text-brand-success shrink-0 text-base">
+                  {getDeedResult().icon}
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-brand-success">Win Cast! Avoided {getDeedResult().saved}</h4>
+                  <h4 className="text-xs font-bold text-brand-success">
+                    Win Cast! Avoided {getDeedResult().carbonSaved} kg CO₂e (Category: {getDeedResult().category.toUpperCase()})
+                  </h4>
                   <p className="text-[10px] text-brand-textSecondary mt-0.5 leading-normal">
-                    This choice {getDeedResult().detail} {!user && "Create your Eco Profile to save this win permanently!"}
+                    By typing that, you {getDeedResult().detail} {!user && "Create your Eco Profile to save this win permanently!"}
                   </p>
                 </div>
               </motion.div>
