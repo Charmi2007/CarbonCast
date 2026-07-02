@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Lightbulb, Zap, Car, Utensils, Recycle, ShoppingBag } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 interface Tip {
   id: number;
@@ -30,7 +31,7 @@ const TipsPage: React.FC = () => {
   useEffect(() => {
     const fetchTips = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/v1/tips');
+        const res = await axios.get(`${API_BASE_URL}/api/v1/tips`);
         setTips(res.data.data.tips);
       } catch (error) {
         console.error("Failed to fetch tips", error);

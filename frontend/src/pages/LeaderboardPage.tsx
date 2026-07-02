@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Medal, Award } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 interface Leader {
   rank: number;
@@ -19,7 +20,7 @@ const LeaderboardPage: React.FC = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/v1/leaderboard');
+        const res = await axios.get(`${API_BASE_URL}/api/v1/leaderboard`);
         setLeaders(res.data.data.leaderboard);
       } catch (error) {
         console.error("Failed to fetch leaderboard", error);
