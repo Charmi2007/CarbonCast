@@ -55,7 +55,25 @@ const MOCK_PROFILES: Record<string, any> = {
 
 const LeaderboardPage: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
-  const [connections, setConnections] = useState<string[]>([]); // connected user names
+  const [connections, setConnections] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('connections') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleConnection = (name: string) => {
+    const isConnected = connections.includes(name);
+    let updated: string[];
+    if (isConnected) {
+      updated = connections.filter(c => c !== name);
+    } else {
+      updated = [...connections, name];
+    }
+    localStorage.setItem('connections', JSON.stringify(updated));
+    setConnections(updated);
+  };
 
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Trophy className="w-5 h-5 text-yellow-500" />;
@@ -181,17 +199,9 @@ const LeaderboardPage: React.FC = () => {
                   <p className="text-[10px] text-brand-primary font-bold mt-0.5 uppercase tracking-wider">{selectedProfile.badge}</p>
                 </div>
                 
-                {/* Connect button */}
                 <Button 
                   size="sm"
-                  onClick={() => {
-                    const isConnected = connections.includes(selectedProfile.name);
-                    if (isConnected) {
-                      setConnections(connections.filter(c => c !== selectedProfile.name));
-                    } else {
-                      setConnections([...connections, selectedProfile.name]);
-                    }
-                  }}
+                  onClick={() => toggleConnection(selectedProfile.name)}
                   className={`text-[10px] font-bold px-4 py-2.5 rounded-xl transition-all ${connections.includes(selectedProfile.name) ? 'bg-brand-surface border border-brand-primary text-brand-primary' : 'bg-brand-primary text-white'}`}
                 >
                   {connections.includes(selectedProfile.name) ? '✓ Connected' : '+ Connect'}

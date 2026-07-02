@@ -10,6 +10,7 @@ export const Navbar: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
+  const [deepSeekKey, setDeepSeekKey] = useState(() => localStorage.getItem('deepseek_api_key') || '');
   const [myStats, setMyStats] = useState({ score: 75, saved: 25.4, category: "Low" });
 
   useEffect(() => {
@@ -194,6 +195,34 @@ export const Navbar: React.FC = () => {
                   <h4 className="text-xs font-bold text-brand-text leading-tight mb-0.5">Tier Category: {myStats.category} Impact</h4>
                   <p className="text-[10px] text-brand-textSecondary leading-snug">Keep logging clean travel and energy avoidance to lower your baseline footprint!</p>
                 </div>
+              </div>
+
+              {/* API Overrides settings */}
+              <div className="mt-4 pt-4 border-t border-brand-border/40">
+                <details className="group">
+                  <summary className="text-[10px] uppercase font-bold text-brand-textSecondary tracking-widest cursor-pointer list-none flex justify-between items-center select-none group-open:mb-3">
+                    <span>🛠️ Sandbox AI Settings</span>
+                    <span className="text-[9px] text-brand-primary group-open:rotate-90 transition-transform">▶</span>
+                  </summary>
+                  <div className="space-y-3 bg-brand-bgAlt p-3.5 rounded-2xl border border-brand-border/30 mt-2">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-brand-textSecondary uppercase tracking-wider block">DeepSeek API Key</label>
+                      <input 
+                        type="password"
+                        placeholder="sk-deepseek-..."
+                        value={deepSeekKey}
+                        onChange={(e) => {
+                          setDeepSeekKey(e.target.value);
+                          localStorage.setItem('deepseek_api_key', e.target.value);
+                        }}
+                        className="w-full px-3 py-1.5 rounded-xl border border-brand-border bg-brand-bg text-brand-text text-xs focus:ring-1 focus:ring-brand-primary outline-none"
+                      />
+                      <p className="text-[9px] text-brand-textSecondary leading-normal pt-1">
+                        Configure your personal API key here. CarbonCast will directly call DeepSeek's AI endpoints from your browser to generate real-time Satirical Climate Roasts.
+                      </p>
+                    </div>
+                  </div>
+                </details>
               </div>
             </motion.div>
           </div>

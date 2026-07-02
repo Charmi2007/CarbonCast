@@ -1,7 +1,7 @@
 import os
 import logging
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from bson import ObjectId
 from fastapi import FastAPI, Depends, HTTPException
@@ -814,6 +814,45 @@ def create_post(payload: PostInput, current_user: dict = Depends(get_required_us
 def get_posts():
     try:
         db = get_db()
+        # Self-healing mock post injector if collection is empty
+        if db.posts.count_documents({}) == 0:
+            mock_posts = [
+                {
+                    "userId": "john_abraham_id",
+                    "userName": "John Abraham",
+                    "text": "Swapped my daily gym transit to cycling! Saved 3.2 kg CO₂e. 💪🚲 #sustainablefitness",
+                    "category": "transport",
+                    "carbonSaved": 3.2,
+                    "createdAt": datetime.utcnow() - timedelta(hours=2)
+                },
+                {
+                    "userId": "dia_mirza_id",
+                    "userName": "Dia Mirza",
+                    "text": "Hosted a zero-waste community composting workshop today. Everyone starts small! 🍂🌱 #compostwins",
+                    "category": "lifestyle",
+                    "carbonSaved": 8.5,
+                    "createdAt": datetime.utcnow() - timedelta(hours=5)
+                },
+                {
+                    "userId": "john_abraham_id",
+                    "userName": "John Abraham",
+                    "text": "Set up a new 5kW solar paneled roof. 100% off the local grid now! ☀️🏡 #cleanenergy",
+                    "category": "energy",
+                    "carbonSaved": 45.0,
+                    "createdAt": datetime.utcnow() - timedelta(days=1)
+                },
+                {
+                    "userId": "dia_mirza_id",
+                    "userName": "Dia Mirza",
+                    "text": "Swapped to 100% plant-based meal replacements this whole week. Reduced food miles footprint! 🥦🥗",
+                    "category": "food",
+                    "carbonSaved": 12.0,
+                    "createdAt": datetime.utcnow() - timedelta(days=2)
+                }
+            ]
+            db.posts.insert_many(mock_posts)
+            logger.info("Database was empty. Seeded 4 default mock posts successfully.")
+            
         docs = db.posts.find().sort("_id", -1).limit(50)
         results = []
         for doc in docs:

@@ -167,6 +167,51 @@ export default function DashboardPage() {
 
   const { results } = data;
 
+  const [aiRoast, setAiRoast] = useState<string>('');
+  const [isRoasting, setIsRoasting] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchAiRoast = async () => {
+      const apiKey = localStorage.getItem('deepseek_api_key');
+      if (!apiKey) {
+        setAiRoast(getRoastMessage(results.carbonScore, results.category));
+        return;
+      }
+
+      setIsRoasting(true);
+      try {
+        const prompt = `Roast my carbon footprint. My estimated annual emissions are ${results.totalCarbonFootprint} tonnes CO2. My carbon score is ${results.carbonScore}/100 and my category is ${results.category}. Make it funny, satirical, and under 50 words.`;
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 100,
+            temperature: 0.85
+          })
+        });
+
+        if (!response.ok) throw new Error("API response error");
+        const json = await response.json();
+        const message = json.choices[0].message.content;
+        setAiRoast(message);
+      } catch (e) {
+        console.error("DeepSeek API roast failed, falling back to static", e);
+        setAiRoast(getRoastMessage(results.carbonScore, results.category));
+      } finally {
+        setIsRoasting(false);
+      }
+    };
+
+    if (results) {
+      fetchAiRoast();
+    }
+  }, [results]);
+
   let breakdownData = [
     { name: 'Transport', value: (results.breakdown?.transportation ?? 0) * 100 },
     { name: 'Electricity', value: (results.breakdown?.electricity ?? 0) * 100 },
@@ -318,7 +363,11 @@ export default function DashboardPage() {
         </p>
         <div className="bg-brand-bg/50 border border-brand-border/60 p-5 rounded-2xl">
           <p className="text-brand-text font-medium leading-relaxed italic text-base">
-            "{getRoastMessage(results.carbonScore, results.category)}"
+            {isRoasting ? (
+              <span className="text-xs text-brand-textSecondary animate-pulse">🤖 DeepSeek AI is compiling a satirical roast...</span>
+            ) : (
+              `"${aiRoast}"`
+            )}
           </p>
         </div>
       </Card>
