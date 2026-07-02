@@ -6,7 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
-import { parseGreenWin } from '../utils/winParser';
+import { parseGreenWin, parseGreenWinAI } from '../utils/winParser';
 
 interface Post {
   id: string;
@@ -28,6 +28,7 @@ export const CommunityPage: React.FC = () => {
   const [category, setCategory] = useState('lifestyle');
   const [carbonSaved, setCarbonSaved] = useState<number>(1.5);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAiParsing, setIsAiParsing] = useState(false);
 
   const handleTextChange = (val: string) => {
     setText(val);
@@ -35,6 +36,21 @@ export const CommunityPage: React.FC = () => {
       const parsed = parseGreenWin(val);
       setCategory(parsed.category);
       setCarbonSaved(parsed.carbonSaved);
+    }
+  };
+
+  const handleAiAutoFill = async () => {
+    if (!text.trim()) return;
+    setIsAiParsing(true);
+    try {
+      const apiKey = localStorage.getItem('deepseek_api_key');
+      const res = await parseGreenWinAI(text, apiKey);
+      setCategory(res.category);
+      setCarbonSaved(res.carbonSaved);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAiParsing(false);
     }
   };
 
@@ -204,6 +220,20 @@ export const CommunityPage: React.FC = () => {
                 </div>
               </div>
             </div>
+            
+            {text.trim() && (
+              <div className="mt-3">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleAiAutoFill}
+                  isLoading={isAiParsing}
+                  className="w-full text-[10px] font-bold py-2 rounded-xl border-brand-primary/30 text-brand-primary hover:bg-brand-primary/5 flex items-center justify-center gap-1 bg-brand-primary/5"
+                >
+                  ✨ Run AI Carbon Estimation & Auto-Fill Category/Offset
+                </Button>
+              </div>
+            )}
             
             <div className="flex flex-wrap items-end justify-between gap-4 pt-3 border-t border-brand-border/40">
               <div className="flex gap-4 flex-1">

@@ -212,6 +212,58 @@ export default function DashboardPage() {
     }
   }, [results]);
 
+  const [aiRecommendations, setAiRecommendations] = useState<string[]>([]);
+  const [isRecsLoading, setIsRecsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchAiRecs = async () => {
+      const apiKey = localStorage.getItem('deepseek_api_key');
+      if (!apiKey) {
+        setAiRecommendations(results.recommendations);
+        return;
+      }
+
+      setIsRecsLoading(true);
+      try {
+        const prompt = `Based on my carbon footprint breakdown (Transport: ${results.breakdown?.transportation || 0}, Electricity: ${results.breakdown?.electricity || 0}, Food: ${results.breakdown?.food || 0}, Shopping/Lifestyle: ${results.breakdown?.lifestyle || 0}, Total: ${results.totalCarbonFootprint} tonnes CO2e/yr), generate exactly 3 concrete, personalized, highly actionable sustainability recommendations under 12 words each. Output ONLY a valid JSON array of strings, e.g. ["Rec 1", "Rec 2", "Rec 3"]. Do not return any markdown wrappers.`;
+        
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 150,
+            temperature: 0.7
+          })
+        });
+
+        if (!response.ok) throw new Error("Recs API failed");
+        const json = await response.json();
+        const content = json.choices[0].message.content.trim();
+        const cleanJson = content.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+        if (Array.isArray(parsed)) {
+          setAiRecommendations(parsed);
+        } else {
+          setAiRecommendations(results.recommendations);
+        }
+      } catch (e) {
+        console.error("DeepSeek API recs failed, falling back to static", e);
+        setAiRecommendations(results.recommendations);
+      } finally {
+        setIsRecsLoading(false);
+      }
+    };
+
+    if (results) {
+      fetchAiRecs();
+    }
+  }, [results]);
+
   let breakdownData = [
     { name: 'Transport', value: (results.breakdown?.transportation ?? 0) * 100 },
     { name: 'Electricity', value: (results.breakdown?.electricity ?? 0) * 100 },
@@ -639,18 +691,24 @@ export default function DashboardPage() {
         <Card>
           <h3 className="text-xl font-bold text-brand-text mb-6">Personalized Recommendations</h3>
           <ul className="space-y-4">
-            {results.recommendations.map((rec: string, index: number) => (
-              <motion.li 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                key={index} 
-                className="flex items-start gap-3 p-4 bg-brand-surface rounded-xl"
-              >
-                <CheckCircle2 className="w-6 h-6 text-brand-primary shrink-0" />
-                <span className="text-brand-text font-medium">{rec}</span>
-              </motion.li>
-            ))}
+            {isRecsLoading ? (
+              <div className="py-8 text-center text-xs text-brand-textSecondary animate-pulse">
+                🤖 DeepSeek AI is compiling personalized recommendations...
+              </div>
+            ) : (
+              aiRecommendations.map((rec: string, index: number) => (
+                <motion.li 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  key={index} 
+                  className="flex items-start gap-3 p-4 bg-brand-surface rounded-xl"
+                >
+                  <CheckCircle2 className="w-6 h-6 text-brand-primary shrink-0" />
+                  <span className="text-brand-text font-medium">{rec}</span>
+                </motion.li>
+              ))
+            )}
           </ul>
         </Card>
 

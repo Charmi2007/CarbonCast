@@ -9,7 +9,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
-import { parseGreenWin } from '../utils/winParser';
+import { parseGreenWinAI } from '../utils/winParser';
 
 const LandingPage: React.FC = () => {
   const { user } = useAuth();
@@ -18,6 +18,8 @@ const LandingPage: React.FC = () => {
   // Green Deed Sandbox State
   const [customDeedText, setCustomDeedText] = useState('');
   const [hasCastWin, setHasCastWin] = useState(false);
+  const [parsedResult, setParsedResult] = useState<any | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Quick suggestion tags to autofill the input
   const suggestions = [
@@ -43,13 +45,36 @@ const LandingPage: React.FC = () => {
     }
   }, [user]);
 
-  const getDeedResult = () => {
-    return parseGreenWin(customDeedText);
+  const handleAnalyze = async () => {
+    if (!customDeedText.trim()) return;
+    setIsAnalyzing(true);
+    setHasCastWin(false);
+    try {
+      const apiKey = localStorage.getItem('deepseek_api_key');
+      const res = await parseGreenWinAI(customDeedText, apiKey);
+      setParsedResult(res);
+      setHasCastWin(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
-  const handleSuggestionClick = (text: string) => {
+  const handleSuggestionClick = async (text: string) => {
     setCustomDeedText(text);
-    setHasCastWin(true);
+    setIsAnalyzing(true);
+    setHasCastWin(false);
+    try {
+      const apiKey = localStorage.getItem('deepseek_api_key');
+      const res = await parseGreenWinAI(text, apiKey);
+      setParsedResult(res);
+      setHasCastWin(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -186,14 +211,14 @@ const LandingPage: React.FC = () => {
                 setHasCastWin(false);
               }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && customDeedText.trim()) setHasCastWin(true);
+                if (e.key === 'Enter') handleAnalyze();
               }}
               className="flex-1 px-3 py-2.5 rounded-xl border border-brand-border bg-brand-bg text-brand-text text-xs focus:ring-1 focus:ring-brand-primary outline-none"
+              disabled={isAnalyzing}
             />
             <Button 
-              onClick={() => {
-                if (customDeedText.trim()) setHasCastWin(true);
-              }}
+              onClick={handleAnalyze}
+              isLoading={isAnalyzing}
               className="bg-brand-primary text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow shadow-brand-primary/10"
             >
               Analyze
@@ -202,7 +227,7 @@ const LandingPage: React.FC = () => {
 
           {/* Parsed Result Box */}
           <AnimatePresence>
-            {hasCastWin && customDeedText.trim() && (
+            {hasCastWin && parsedResult && customDeedText.trim() && (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -210,14 +235,14 @@ const LandingPage: React.FC = () => {
                 className="p-3.5 bg-brand-success/10 border border-brand-success/20 rounded-xl text-left flex gap-3 items-center"
               >
                 <div className="w-7 h-7 rounded-full bg-brand-success/15 border border-brand-success/30 flex items-center justify-center text-brand-success text-sm shrink-0">
-                  {getDeedResult().icon}
+                  {parsedResult.icon}
                 </div>
                 <div className="flex-1 space-y-1">
                   <h4 className="text-xs font-bold text-brand-success leading-none">
-                    Avoided {getDeedResult().carbonSaved} kg CO₂e ({getDeedResult().category.toUpperCase()})
+                    Avoided {parsedResult.carbonSaved} kg CO₂e ({parsedResult.category.toUpperCase()})
                   </h4>
                   <p className="text-[10px] text-brand-textSecondary leading-normal">
-                    This choice {getDeedResult().detail}
+                    This choice {parsedResult.detail}
                   </p>
                   {!user && (
                     <Link to="/signup" className="inline-flex items-center gap-0.5 text-[9px] text-brand-primary font-bold hover:underline">

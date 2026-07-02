@@ -1,4 +1,4 @@
-interface ParsedWin {
+export interface ParsedWin {
   category: string;
   carbonSaved: number;
   icon: string;
@@ -51,4 +51,46 @@ export const parseGreenWin = (text: string): ParsedWin => {
   
   // Default fallback
   return { category: 'lifestyle', carbonSaved: 2.0, icon: '🌿', detail: 'took a proactive green step to reduce carbon footprint!' };
+};
+
+export const parseGreenWinAI = async (text: string, apiKey?: string | null): Promise<ParsedWin> => {
+  if (!apiKey) {
+    return parseGreenWin(text);
+  }
+  
+  try {
+    const prompt = `You are an environmental science AI. Analyze this green deed: "${text}". Output a JSON object containing: 'category' (one of: 'transport', 'energy', 'food', 'lifestyle'), 'carbonSaved' (float estimation in kg CO2 saved), 'icon' (a single emoji representing the deed), and 'detail' (a brief explanation under 15 words of why this saves carbon). Return ONLY the raw JSON block without any markdown formatting or extra text.`;
+    
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 150,
+        temperature: 0.2
+      })
+    });
+    
+    if (!response.ok) throw new Error("AI parser failed");
+    const json = await response.json();
+    const content = json.choices[0].message.content.trim();
+    
+    // Clean JSON markdown code blocks if present
+    const cleanJson = content.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleanJson);
+    
+    return {
+      category: parsed.category || 'lifestyle',
+      carbonSaved: Number(parsed.carbonSaved) || 2.0,
+      icon: parsed.icon || '🌿',
+      detail: parsed.detail || 'took a proactive green step.'
+    };
+  } catch (e) {
+    console.error("AI green win parsing failed, falling back to static rules", e);
+    return parseGreenWin(text);
+  }
 };
