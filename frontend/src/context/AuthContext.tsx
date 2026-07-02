@@ -14,6 +14,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
+  loginAsDemo: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -59,6 +60,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
     if (error) throw error;
+  };
+
+  const loginAsDemo = async () => {
+    const demoUser = {
+      id: "demo_user_123",
+      name: "Bicky (Demo)",
+      email: "demo@carboncast.com"
+    };
+    const demoToken = "demo_token_bicky_sustainability_champion";
+    setUser(demoUser);
+    setToken(demoToken);
+    localStorage.setItem('token', demoToken);
+    syncGuestData();
   };
 
   const logout = async () => {
@@ -116,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, signUp, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, signUp, loginAsDemo, logout }}>
       {children}
     </AuthContext.Provider>
   );

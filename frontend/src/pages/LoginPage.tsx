@@ -12,7 +12,7 @@ const LoginPage: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, loginAsDemo } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,6 +31,18 @@ const LoginPage: React.FC = () => {
     } catch (error: any) {
       setStatus('error');
       setErrorMsg(error.message || 'Invalid email or password.');
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setStatus('loading');
+    try {
+      await loginAsDemo();
+      const from = (location.state as any)?.from?.pathname || '/community';
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      setStatus('error');
+      setErrorMsg(error.message || 'Failed to enter Demo Sanctuary.');
     }
   };
 
@@ -80,6 +92,21 @@ const LoginPage: React.FC = () => {
 
             <Button type="submit" className="w-full py-3.5 rounded-xl font-bold text-sm bg-brand-primary text-white shadow-md hover:shadow-lg shadow-brand-primary/10 transition-all mt-6" isLoading={status === 'loading'}>
               Access Profile
+            </Button>
+
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t border-brand-border/40"></div>
+              <span className="flex-shrink mx-4 text-[10px] text-brand-textSecondary font-bold uppercase tracking-widest">Or Sandbox Mode</span>
+              <div className="flex-grow border-t border-brand-border/40"></div>
+            </div>
+
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleDemoLogin} 
+              className="w-full py-3.5 rounded-xl font-bold text-xs border-brand-border hover:border-brand-primary hover:text-brand-primary text-brand-textSecondary transition-all"
+            >
+              Enter Demo Sanctuary (Bypass Auth) 🚀
             </Button>
             
             <p className="text-center text-xs text-brand-textSecondary mt-4">

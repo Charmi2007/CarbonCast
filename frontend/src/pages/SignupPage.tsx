@@ -11,7 +11,7 @@ const SignupPage: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, loginAsDemo } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,6 +30,17 @@ const SignupPage: React.FC = () => {
     } catch (error: any) {
       setStatus('error');
       setErrorMsg(error.message || 'Failed to create account. Please try again.');
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setStatus('loading');
+    try {
+      await loginAsDemo();
+      navigate('/calculator?onboarding=true');
+    } catch (error: any) {
+      setStatus('error');
+      setErrorMsg(error.message || 'Failed to enter Demo Sanctuary.');
     }
   };
 
@@ -125,6 +136,21 @@ const SignupPage: React.FC = () => {
 
               <Button type="submit" className="w-full py-3.5 rounded-xl font-bold text-sm bg-brand-primary text-white shadow-md hover:shadow-lg shadow-brand-primary/10 transition-all mt-6" isLoading={status === 'loading'}>
                 Sign Up & Set Up Scorecard
+              </Button>
+
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-brand-border/40"></div>
+                <span className="flex-shrink mx-4 text-[10px] text-brand-textSecondary font-bold uppercase tracking-widest">Or Sandbox Mode</span>
+                <div className="flex-grow border-t border-brand-border/40"></div>
+              </div>
+
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleDemoLogin} 
+                className="w-full py-3.5 rounded-xl font-bold text-xs border-brand-border hover:border-brand-primary hover:text-brand-primary text-brand-textSecondary transition-all"
+              >
+                Enter Demo Sanctuary (Bypass Auth) 🚀
               </Button>
               
               <p className="text-center text-xs text-brand-textSecondary mt-4">
