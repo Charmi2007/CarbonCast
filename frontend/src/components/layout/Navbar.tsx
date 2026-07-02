@@ -1,13 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Leaf } from 'lucide-react';
+import { Leaf, LogOut, User as UserIcon } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useAuth } from '../../context/AuthContext';
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
   
   const navLinks = [
     { name: 'Calculator', path: '/calculator' },
+    { name: 'Community', path: '/community' },
     { name: 'Quests', path: '/quests' },
     { name: 'Tips', path: '/tips' },
     { name: 'About', path: '/about' },
@@ -39,9 +42,30 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Link to="/calculator">
-              <Button size="sm">Calculate Now</Button>
-            </Link>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-brand-text">
+                  <UserIcon className="w-4 h-4 text-brand-primary" />
+                  {user.name}
+                </div>
+                <button 
+                  onClick={logout}
+                  className="text-brand-textSecondary hover:text-brand-error transition-colors"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">Log In</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm">Sign Up</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

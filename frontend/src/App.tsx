@@ -11,6 +11,9 @@ const QuestPage = lazy(() => import('./pages/QuestPage'));
 const TipsPage = lazy(() => import('./pages/TipsPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
+const SignupPage = lazy(() => import('./pages/SignupPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const CommunityPage = lazy(() => import('./pages/CommunityPage'));
 
 const PageLoader = () => (
   <div className="flex h-[50vh] items-center justify-center">
@@ -30,6 +33,9 @@ function App() {
           <Route path="tips" element={<TipsPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
+          <Route path="signup" element={<SignupPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="community" element={<CommunityPage />} />
         </Route>
       </Routes>
     </Suspense>

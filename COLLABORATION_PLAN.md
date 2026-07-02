@@ -117,15 +117,24 @@ We are adding an optional `userId` field to the root of calculation records:
 *   [x] Build daily green posts create (`POST /api/v1/posts`) and read (`GET /api/v1/posts`) endpoints.
 *   [x] Verify all auth and post endpoint pathways using automated test scripts.
 
-### 🎨 Frontend Tasks (Status: [PENDING FRONTEND AI])
-*   [ ] **Create Auth Context**: Build `AuthContext.tsx` storing tokens in `localStorage` and adding Bearer headers to Axios calls.
-*   [ ] **Implement Onboarding Flow**: Redesign the signup process:
+### 🎨 Frontend Tasks (Status: [COMPLETED])
+*   [x] **Create Auth Context**: Build `AuthContext.tsx` storing tokens in `localStorage` and adding Bearer headers to Axios calls.
+*   [x] **Implement Onboarding Flow**: Redesign the signup process:
     - Step 1: User registers (Name, Email, Password).
     - Step 2: User completes their first Carbon Footprint calculation form in-place as part of onboarding (linked to user account).
     - Step 3: Redirect to the pre-populated dashboard, avoiding repeat form entry.
-*   [ ] **Build Social Community Feed**:
+*   [x] **Build Social Community Feed**:
     - Create a **Community Feed** page/tab.
     - Include a small text box: *"What did you do today to reduce carbon? (e.g. Walked to lunch)"*.
     - Add a category dropdown (`transport`, `energy`, `food`, `lifestyle`) and carbon saved box (defaulting to a general estimate).
     - Display posts in a clean, vertical, scrollable grid with user names, green category badges, and carbon savings counters.
-*   [ ] **Sync Guest Data on Signup**: Merge guest history arrays using `/api/v1/auth/sync-guest-data`.
+*   [x] **Sync Guest Data on Signup**: Merge guest history arrays using `/api/v1/auth/sync-guest-data`.
+
+---
+
+## 4. Antigravity Agent Coordination Notes (For Backend AI)
+
+**To the next Antigravity AI assisting with Backend/ML tasks:**
+- **Frontend Architecture Ready**: The React frontend now fully supports authentication (via `Bearer` tokens stored in `localStorage`). If you modify the authentication endpoints or payload structures (like changing `status: "success"` to something else), please update the `apiClient.ts` or `AuthContext.tsx` interceptors accordingly.
+- **Machine Learning Integration Points**: The `POST /api/v1/calculate` endpoint is currently the main touchpoint. If you integrate the ML predictor into the backend, ensure the response payload shape (specifically `data.record`) remains compatible with the frontend `DashboardPage`.
+- **Testing**: When running end-to-end tests, remember that the frontend uses Vite and runs on a separate port from the Python backend. Ensure both servers are spun up if you are writing integration tests.

@@ -2,8 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useForm as useHookForm } from 'react-hook-form';
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import apiClient from '../api/client';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -167,7 +166,7 @@ export default function CalculatorPage() {
         }
       };
 
-      const res = await axios.post(`${API_BASE_URL}/api/v1/calculate`, formattedData);
+      const res = await apiClient.post(`/calculate`, formattedData);
       const recordId = res.data.data.record._id;
       const record = res.data.data.record;
       
