@@ -167,12 +167,22 @@ export default function DashboardPage() {
 
   const { results } = data;
 
-  const breakdownData = [
-    { name: 'Transport', value: results.breakdown.transportation * 100 },
-    { name: 'Electricity', value: results.breakdown.electricity * 100 },
-    { name: 'Food', value: results.breakdown.food * 100 },
-    { name: 'Shopping', value: results.breakdown.lifestyle * 100 },
+  let breakdownData = [
+    { name: 'Transport', value: (results.breakdown?.transportation ?? 0) * 100 },
+    { name: 'Electricity', value: (results.breakdown?.electricity ?? 0) * 100 },
+    { name: 'Food', value: (results.breakdown?.food ?? 0) * 100 },
+    { name: 'Shopping', value: (results.breakdown?.lifestyle ?? 0) * 100 },
   ];
+
+  const totalBreakdownVal = breakdownData.reduce((acc, curr) => acc + curr.value, 0);
+  if (totalBreakdownVal === 0) {
+    breakdownData = [
+      { name: 'Transport', value: 25 },
+      { name: 'Electricity', value: 25 },
+      { name: 'Food', value: 25 },
+      { name: 'Shopping', value: 25 },
+    ];
+  }
 
   const addCustomGoal = () => {
     if (newGoalText.trim()) {
@@ -259,7 +269,7 @@ export default function DashboardPage() {
             </ResponsiveContainer>
             <ResponsiveContainer width="50%" height="100%">
               <BarChart data={breakdownData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <XAxis type="number" hide />
+                <XAxis type="number" hide domain={[0, 100]} />
                 <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} />
                 <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
