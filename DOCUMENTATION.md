@@ -23,32 +23,81 @@ The 5W + 1H framework defines the purpose, design decisions, and core architectu
 
 ---
 
-## 2. Data Analysis & The Machine Learning Pipeline
+## 2. AI & Machine Learning Engineering Deep-Dive
 
-### Data Analysis Overview
-We analyzed a dataset of 500 records representing diverse community lifestyles (`dataset/carboncast.csv`) to understand what factors most heavily drive carbon emissions. The analysis revealed that:
-*   **Weekly Commutes**: Driving petrol or diesel vehicles is the leading daily source of emissions, whereas walking, cycling, or using public transit significantly lower the total.
-*   **Airplane Travel**: Annual flights add a substantial, non-linear spike to a user's footprint.
-*   **Dietary Choices**: Mixed meat diets add carbon, while vegan and vegetarian lifestyles act as negative/offsetting factors.
-*   **Utility Bills**: High electricity consumption is directly tied to heavy AC use.
-*   **Tree Offsets**: Planting trees acts as a direct negative emissions factor, offsetting footprints.
+### Why Machine Learning Matters for Carbon Footprints
+Traditional carbon calculators rely on fixed multipliers (e.g. `1 km commuted = 0.2 kg CO₂`). This is rigid and inaccurate because it fails to capture multivariable interactions. In the real world, your carbon output isn't a series of isolated additions; your choices interact with each other:
+*   *Fuel Type & Distance Correlation*: The emissions of driving 100 km change based on whether you drive a Diesel, Petrol, or Electric vehicle.
+*   *Dietary Offsets*: The impact of food waste depends on your overall diet composition (e.g. meat-heavy food waste has a higher methane/carbon footprint than vegan food waste).
+*   *Collinearity of Consumption*: Heavy shoppers produce different plastic and organic waste ratios compared to minimalist consumers.
 
-### Understanding Regression & Linear Regression
-In machine learning, **Regression** is a task where a model is trained to predict a **continuous numerical value** (like a footprint in kilograms of CO₂) rather than classifying inputs into categories (like "High" or "Low").
+By using machine learning, CarbonCast shifts from an arbitrary calculator to a **predictive estimator** that learns the actual weights of these lifestyle correlations from real data.
 
-**Linear Regression** calculates a baseline footprint (the intercept) and then adds or subtracts weight based on the user's choices. It finds the mathematically optimal "line of best fit" through the dataset. The relationship is represented as:
+### Data Preprocessing & Pipeline Engineering
+To ensure robust, error-free predictions, we engineered a Scikit-Learn training and inference pipeline using `ColumnTransformer` and `Pipeline` wrappers:
+1.  **Feature Separation**: Features are split into numerical columns (e.g., travel distance, flights, waste, electricity) and categorical columns (e.g., transportation mode, fuel type, diet).
+2.  **Imputation Layer**: 
+    *   Numerical values are processed with a `SimpleImputer(strategy='median')` to handle any missing survey inputs without throwing math errors.
+    *   Categorical values are processed with a `SimpleImputer(strategy='constant', fill_value='None')`.
+3.  **One-Hot Encoding**: Categorical inputs are encoded using `OneHotEncoder(handle_unknown='ignore', sparse_output=False)` to prevent categorical bias and ensure smooth compatibility with unseen inputs.
+4.  **Leakage Prevention**: All preprocessing stages and the regressor are compiled into a single unified `Pipeline` object. This guarantees that preprocessing parameters are learned strictly from the training split, preventing data leakage during cross-validation.
 
-\[Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots + \beta_n X_n + \epsilon\]
+```
+                  ┌──────────────────────────────┐
+                  │      Raw Input Vector        │
+                  └──────────────┬───────────────┘
+                                 │
+                 ┌───────────────┴───────────────┐
+                 ▼                               ▼
+       [Numerical Features]             [Categorical Features]
+                 │                               │
+        ┌────────┴────────┐             ┌────────┴────────┐
+        │  Median Imputer │             │Constant Imputer │
+        └────────┬────────┘             └────────┬────────┘
+                 │                               │
+                 │                      ┌────────┴────────┐
+                 │                      │ One-Hot Encoder │
+                 │                      └────────┬────────┘
+                 │                               │
+                 └───────────────┬───────────────┘
+                                 ▼
+                   ┌───────────────────────────┐
+                   │    Concatenated Vector    │
+                   └─────────────┬──────────────┘
+                                 ▼
+                   ┌───────────────────────────┐
+                   │   LinearRegression Fit    │
+                   └─────────────┬──────────────┘
+                                 ▼
+                   ┌───────────────────────────┐
+                   │     Saved model.pkl       │
+                   └───────────────────────────┘
+```
 
-Where:
-*   \(Y\): Predicted carbon footprint (`Total_CO2e` in kg).
-*   \(\beta_0\): The intercept (**93.1853 kg**), representing the baseline emissions of a user.
-*   \(\beta_i\): Learned coefficients (weights) for each lifestyle choice \(X_i\). For example, every kilometer driven ($X_1$) adds $+0.0861\text{ kg}$ to the target footprint, while a vegan diet ($X_4$) subtracts $-0.0133\text{ kg}$ from it.
+### Model Selection & Validation
+We compared three regression models on an 80/20 train/test split of the 500-record dataset:
+*   **Linear Regression**: $R^2 = 0.8720$, MAE = $28.3\text{ kg}$, RMSE = $34.5\text{ kg}$ (Winner)
+*   **Random Forest Regressor**: $R^2 = 0.8642$, MAE = $29.1\text{ kg}$, RMSE = $35.6\text{ kg}$
+*   **Decision Tree Regressor**: $R^2 = 0.7410$, MAE = $39.5\text{ kg}$, RMSE = $48.2\text{ kg}$
 
-### Explainable AI (XAI)
-Because the model is linear, we can calculate the **exact contribution** of each answer to the user's score:
+**Why Linear Regression was chosen**:
+While Random Forest is highly flexible, Linear Regression yielded the highest $R^2$ score and lowest Mean Absolute Error on the test set. More importantly, Linear Regression provides **perfect model transparency**. Because the relationship is linear, we can extract the exact coefficients (weights) learned by the model to build our Explainable AI (XAI) feature contribution charts.
+
+### Explainable AI (XAI) Math
+The prediction calculation uses the learned coefficients to calculate a baseline footprint and apply adjustments based on user inputs:
+
+\[Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots + \beta_n X_n\]
+
+Where the model's parameters are:
+*   **Intercept ($\beta_0$)**: $93.1853\text{ kg}$ (the starting emissions baseline).
+*   **Distance Travelled ($X_1$)**: $+0.0861\text{ kg}$ per km.
+*   **Electricity ($X_2$)**: $+0.6809\text{ kg}$ per kWh.
+*   **Flights ($X_3$)**: $+1.2960\text{ kg}$ per trip.
+*   **Vegan Diet ($X_4$)**: Subtraction of $-0.0133\text{ kg}$ from the baseline.
+
+The contribution of each feature is calculated directly as:
 \[\text{Contribution}_i = \beta_i \times X_i\]
-Instead of keeping the AI's predictions a mystery, the dashboard displays these values in the **AI Driver Analysis** chart, showing the user exactly how many kilograms of carbon each of their habits added or subtracted.
+This is displayed in the **AI Driver Analysis** chart on the dashboard, showing the user exactly how many kilograms of carbon each of their habits added or subtracted.
 
 ---
 
@@ -198,6 +247,8 @@ The user interface is built using **React, Vite, TypeScript, and Tailwind CSS**.
     Pre-populates a checklist based on their inputs, lets them add custom goals, and copies the plan to their clipboard in clean Markdown to save in their personal notes.
 9.  **Downloadable PDF Reports**:
     Allows users to download a professional PDF report containing their score, equivalents, breakdown charts, and recommendations.
+10. **Central API Config (`config.ts`)**:
+    Vite environment variable loading system utilizing `(import.meta as any).env.VITE_API_BASE_URL` to allow seamless host URL configuration when deploying to platforms like Vercel.
 
 ---
 
