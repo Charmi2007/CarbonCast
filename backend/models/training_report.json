@@ -1,0 +1,20 @@
+{
+    "Dataset rows": 500,
+    "Feature names": [
+        "Transport_Mode",
+        "Fuel_Type",
+        "Diet_Type",
+        "Distance_km",
+        "Flight_Trips",
+        "Electricity_kWh",
+        "Organic_Waste_kg",
+        "Plastic_Waste_kg",
+        "Water_Liters",
+        "Trees_Planted"
+    ],
+    "Selected algorithm": "Linear Regression",
+    "MAE": 23.6965,
+    "RMSE": 28.1787,
+    "R\u00b2 Score": 0.872,
+    "Training timestamp": "2026-07-01T13:42:37.909378Z"
+}

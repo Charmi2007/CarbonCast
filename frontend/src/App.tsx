@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const CalculatorPage = lazy(() => import('./pages/CalculatorPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const QuestPage = lazy(() => import('./pages/QuestPage'));
 const TipsPage = lazy(() => import('./pages/TipsPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
@@ -26,7 +26,7 @@ function App() {
           <Route index element={<LandingPage />} />
           <Route path="calculator" element={<CalculatorPage />} />
           <Route path="dashboard/:id" element={<DashboardPage />} />
-          <Route path="leaderboard" element={<LeaderboardPage />} />
+          <Route path="quests" element={<QuestPage />} />
           <Route path="tips" element={<TipsPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />

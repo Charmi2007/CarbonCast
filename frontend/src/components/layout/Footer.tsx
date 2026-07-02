@@ -26,7 +26,7 @@ export const Footer: React.FC = () => {
             <h3 className="font-poppins font-semibold text-brand-text mb-4">Product</h3>
             <ul className="space-y-3 text-sm text-brand-textSecondary">
               <li><Link to="/calculator" className="hover:text-brand-primary">Calculator</Link></li>
-              <li><Link to="/leaderboard" className="hover:text-brand-primary">Leaderboard</Link></li>
+              <li><Link to="/quests" className="hover:text-brand-primary">Quests</Link></li>
               <li><Link to="/tips" className="hover:text-brand-primary">Tips</Link></li>
               <li><Link to="/contact" className="hover:text-brand-primary">Contact</Link></li>
             </ul>

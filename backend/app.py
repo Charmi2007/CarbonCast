@@ -5,6 +5,7 @@ from bson import ObjectId
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
 # Load env variables before other imports
@@ -31,6 +32,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 model = None
 
@@ -72,19 +75,88 @@ def _map_frontend_to_predictor(data: dict) -> dict:
     new_clothes_monthly = float(lifestyle.get("newClothesMonthly") or 0)
     plastic_bottles_weekly = float(lifestyle.get("plasticBottlesWeekly") or 0)
 
-    # Conversion logic matching synthetic dataset ranges
+    # Conversion logic matching synthetic dataset ranges (legacy keys)
     transport_km = weekly_distance / 7.0
     electricity_kwh = (electricity_bill / 4.5) + (ac_count * ac_usage_daily * 1.2)
     meat_meals = chicken_meals_weekly + (red_meat_meals_monthly * 12.0 / 52.0)
     flights = float(transport.get("flightsYearly") or 0)
     shopping = online_shopping_monthly * 10.0 + new_clothes_monthly * 15.0 + plastic_bottles_weekly * 2.0
 
+    # Real dataset mappings
+    # 1. Transport_Mode
+    pt = transport.get("primaryTransport", "Walk")
+    if pt == "Metro":
+        mode = "Train"
+    elif pt == "Cycle":
+        mode = "Bike"
+    elif pt in ["Car", "Bike", "Train", "Walk", "Bus"]:
+        mode = pt
+    else:
+        mode = "Walk"
+
+    # 2. Distance_km
+    distance = weekly_distance
+
+    # 3. Fuel_Type
+    fuel = transport.get("fuelType") or transport.get("fuel_type")
+    if not fuel:
+        if mode == "Car":
+            fuel = "Petrol"
+        elif mode == "Bus":
+            fuel = "Diesel"
+        elif mode == "Train":
+            fuel = "Electric"
+        else:
+            fuel = "None"
+    if fuel is None or str(fuel).lower() in ["none", "nan"]:
+        fuel = "None"
+
+    # 4. Flight_Trips
+    flights_val = flights
+
+    # 5. Diet_Type
+    diet_pref = food.get("diet", "Mixed")
+    if diet_pref == "Vegan":
+        diet = "Vegan"
+    elif diet_pref in ["Vegetarian", "Eggetarian"]:
+        diet = "Vegetarian"
+    else:
+        diet = "Mixed"
+
+    # 6. Electricity_kWh
+    elec_kwh = electricity_kwh
+
+    # 7. Organic_Waste_kg (default to mean)
+    organic = float(lifestyle.get("organicWaste") or lifestyle.get("organic_waste") or 13.0)
+
+    # 8. Plastic_Waste_kg (estimate from plasticBottlesWeekly if not provided)
+    plastic = float(lifestyle.get("plasticWaste") or lifestyle.get("plastic_waste") or min(max(plastic_bottles_weekly * 0.5, 0.0), 10.0))
+
+    # 9. Water_Liters (default to mean)
+    water = float(lifestyle.get("waterUsage") or lifestyle.get("water_liters") or 336.0)
+
+    # 10. Trees_Planted
+    trees = float(lifestyle.get("treesPlanted") or lifestyle.get("trees_planted") or 0.0)
+
     return {
+        # Legacy keys for backward compatibility, simulator, emission breakdown, etc.
         "transport_km": max(0.0, transport_km),
         "electricity_kwh": max(0.0, electricity_kwh),
         "meat_meals": max(0.0, meat_meals),
         "flights": max(0.0, flights),
-        "shopping": max(0.0, shopping)
+        "shopping": max(0.0, shopping),
+        
+        # Real dataset features for the ML model
+        "Transport_Mode": mode,
+        "Distance_km": distance,
+        "Fuel_Type": fuel,
+        "Flight_Trips": flights_val,
+        "Diet_Type": diet,
+        "Electricity_kWh": elec_kwh,
+        "Organic_Waste_kg": organic,
+        "Plastic_Waste_kg": plastic,
+        "Water_Liters": water,
+        "Trees_Planted": trees
     }
 
 
@@ -108,6 +180,20 @@ def api_health():
     return {"status": "success", "message": "API is running smoothly.", "model_loaded": model is not None}
 
 
+@app.get("/api/v1/model-info")
+def api_get_model_info():
+    import json
+    report_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "training_report.json")
+    if not os.path.exists(report_path):
+        raise HTTPException(status_code=404, detail="Model training report not found")
+    with open(report_path, "r") as f:
+        report = json.load(f)
+    return {
+        "status": "success",
+        "data": report
+    }
+
+
 @app.post("/api/v1/calculate")
 def api_calculate(payload: dict):
     try:
@@ -124,6 +210,20 @@ def api_calculate(payload: dict):
         breakdown_electricity = breakdown_pct.get("Electricity", 0) / 100.0
         breakdown_food = breakdown_pct.get("Food", 0) / 100.0
         breakdown_lifestyle = breakdown_pct.get("Shopping", 0) / 100.0
+
+        # AI/ML explainability additions
+        import math
+        z = (prediction - 271.72) / 80.87
+        percentile_val = 100 - (100 * (0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))))
+        percentile = round(max(1.0, min(99.0, percentile_val)), 1)
+
+        equivalents = {
+            "km_driven": int(round(total_carbon_footprint * 4023)),
+            "phones_charged": int(round(total_carbon_footprint * 121643)),
+            "tree_offset": int(round(total_carbon_footprint * 45))
+        }
+
+        explanation = predictor.explain_prediction(mapped_data)
 
         document = {
             "personal": payload.get("personal", {}),
@@ -145,7 +245,10 @@ def api_calculate(payload: dict):
                     "food": breakdown_food,
                     "lifestyle": breakdown_lifestyle
                 },
-                "recommendations": recs
+                "recommendations": recs,
+                "percentile": percentile,
+                "equivalents": equivalents,
+                "ai_explanation": explanation
             },
             "createdAt": datetime.utcnow()
         }
@@ -344,6 +447,20 @@ def predict(payload: FootprintInput):
         breakdown_food = breakdown_pct.get("Food", 0) / 100.0
         breakdown_lifestyle = breakdown_pct.get("Shopping", 0) / 100.0
 
+        # AI/ML explainability additions
+        import math
+        z = (prediction - 271.72) / 80.87
+        percentile_val = 100 - (100 * (0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))))
+        percentile = round(max(1.0, min(99.0, percentile_val)), 1)
+
+        equivalents = {
+            "km_driven": int(round(total_carbon_footprint * 4023)),
+            "phones_charged": int(round(total_carbon_footprint * 121643)),
+            "tree_offset": int(round(total_carbon_footprint * 45))
+        }
+
+        explanation = predictor.explain_prediction(data)
+
         document = {
             "personal": {"name": "Anonymous", "age": 0},
             "home": {
@@ -382,7 +499,10 @@ def predict(payload: FootprintInput):
                     "food": breakdown_food,
                     "lifestyle": breakdown_lifestyle
                 },
-                "recommendations": recs
+                "recommendations": recs,
+                "percentile": percentile,
+                "equivalents": equivalents,
+                "ai_explanation": explanation
             },
             "createdAt": datetime.utcnow()
         }
@@ -403,6 +523,9 @@ def predict(payload: FootprintInput):
             "recommendations": recs,
             "monthly_trend": monthly,
             "charts": charts,
+            "percentile": percentile,
+            "equivalents": equivalents,
+            "ai_explanation": explanation,
         }
     except Exception as e:
         logger.exception("Prediction failed")

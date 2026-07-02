@@ -29,3 +29,16 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Generated PDF Reports
+backend/reports/*.pdf
+backend/static/bar_chart.png
+backend/static/line_chart.png
+backend/static/pie_chart.png
+
