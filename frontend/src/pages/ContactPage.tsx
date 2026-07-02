@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const ContactPage: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -15,7 +16,7 @@ const ContactPage: React.FC = () => {
       const formData = new FormData(e.currentTarget);
       const data = Object.fromEntries(formData.entries());
       
-      await axios.post('http://localhost:5000/api/v1/contact', data);
+      await axios.post(`${API_BASE_URL}/api/v1/contact`, data);
       setStatus('success');
       e.currentTarget.reset();
     } catch (error) {

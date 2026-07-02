@@ -6,6 +6,7 @@ import { Download, CheckCircle2, Clipboard, Plus, Trash, History } from 'lucide-
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const COLORS = ['#2E7D32', '#66BB6A', '#A5D6A7', '#F59E0B'];
 
@@ -67,9 +68,9 @@ export default function DashboardPage() {
     const fetchResults = async () => {
       try {
         const [res, modelRes, historyRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/v1/results/${id}`),
-          axios.get(`http://localhost:5000/api/v1/model-info`),
-          axios.get(`http://localhost:5000/history`)
+          axios.get(`${API_BASE_URL}/api/v1/results/${id}`),
+          axios.get(`${API_BASE_URL}/api/v1/model-info`),
+          axios.get(`${API_BASE_URL}/history`)
         ]);
 
         setData(res.data.data.record);
@@ -100,7 +101,7 @@ export default function DashboardPage() {
         console.error("Failed to fetch dashboard data", error);
         // Fallback to fetch just results if model info fails
         try {
-          const res = await axios.get(`http://localhost:5000/api/v1/results/${id}`);
+          const res = await axios.get(`${API_BASE_URL}/api/v1/results/${id}`);
           setData(res.data.data.record);
         } catch (err) {
           console.error("Secondary fetch failed", err);
@@ -131,7 +132,7 @@ export default function DashboardPage() {
           flights_reduction_pct: flightsPct,
           shopping_reduction_pct: shoppingPct
         };
-        const res = await axios.post('http://localhost:5000/simulate', payload);
+        const res = await axios.post(`${API_BASE_URL}/simulate`, payload);
         setSimResults(res.data);
       } catch (err) {
         console.error("Live simulation request failed", err);
@@ -208,7 +209,7 @@ export default function DashboardPage() {
           <p className="text-brand-textSecondary">Here is the detailed breakdown of your estimated emissions.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2" onClick={() => window.open(`http://localhost:5000/api/v1/report/${id}`, '_blank')}><Download className="w-4 h-4"/> Download PDF</Button>
+          <Button variant="outline" className="gap-2" onClick={() => window.open(`${API_BASE_URL}/api/v1/report/${id}`, '_blank')}><Download className="w-4 h-4"/> Download PDF</Button>
         </div>
       </div>
 
@@ -462,7 +463,7 @@ export default function DashboardPage() {
               <h4 className="text-sm font-semibold text-brand-text mb-2">Model Regression Fit</h4>
               <div className="border border-brand-border rounded-xl overflow-hidden shadow-sm bg-white p-2">
                 <img 
-                  src="http://localhost:5000/static/regression_plot.png" 
+                  src={`${API_BASE_URL}/static/regression_plot.png`} 
                   alt="Model Regression Plot" 
                   className="w-full h-auto max-h-[220px] object-contain rounded-lg"
                 />
