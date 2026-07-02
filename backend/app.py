@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from database import get_db
-from schemas import FootprintInput, SimulateInput, GoalInput, HistoryOut, UserSignup, UserLogin, UserOut, AuthResponse, SyncGuestInput
+from schemas import FootprintInput, SimulateInput, GoalInput, HistoryOut, UserSignup, UserLogin, UserOut, AuthResponse, SyncGuestInput, PostInput, PostOut
 from auth import get_password_hash, verify_password, create_access_token, get_current_user, get_required_user
 import predictor
 import analytics
@@ -778,4 +778,57 @@ def sync_guest_data(payload: SyncGuestInput, current_user: dict = Depends(get_re
     except Exception as e:
         logger.exception("Syncing guest data failed")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/posts", response_model=PostOut, status_code=201)
+def create_post(payload: PostInput, current_user: dict = Depends(get_required_user)):
+    try:
+        db = get_db()
+        post_doc = {
+            "userId": current_user["id"],
+            "userName": current_user["name"],
+            "text": payload.text.strip(),
+            "category": payload.category.strip(),
+            "carbonSaved": payload.carbon_saved,
+            "createdAt": datetime.utcnow()
+        }
+        
+        result = db.posts.insert_one(post_doc)
+        post_id = str(result.inserted_id)
+        
+        return {
+            "id": post_id,
+            "user_id": current_user["id"],
+            "user_name": current_user["name"],
+            "text": post_doc["text"],
+            "category": post_doc["category"],
+            "carbon_saved": post_doc["carbonSaved"],
+            "timestamp": post_doc["createdAt"]
+        }
+    except Exception as e:
+        logger.exception("Creating post failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/posts", response_model=list[PostOut])
+def get_posts():
+    try:
+        db = get_db()
+        docs = db.posts.find().sort("_id", -1).limit(50)
+        results = []
+        for doc in docs:
+            results.append(PostOut(
+                id=str(doc["_id"]),
+                user_id=doc.get("userId", "unknown"),
+                user_name=doc.get("userName", "Anonymous"),
+                text=doc.get("text", ""),
+                category=doc.get("category", "General"),
+                carbon_saved=doc.get("carbonSaved", 0.0),
+                timestamp=doc.get("createdAt") or datetime.utcnow()
+            ))
+        return results
+    except Exception as e:
+        logger.exception("Fetching posts failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
 

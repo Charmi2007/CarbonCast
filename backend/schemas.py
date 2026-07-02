@@ -58,3 +58,19 @@ class SyncGuestInput(BaseModel):
     record_ids: list[str]
 
 
+class PostInput(BaseModel):
+    text: str = Field(..., min_length=2, max_length=280)
+    category: str
+    carbon_saved: float = Field(0.0, ge=0)
+
+class PostOut(BaseModel):
+    id: str
+    user_id: str
+    user_name: str
+    text: str
+    category: str
+    carbon_saved: float
+    timestamp: datetime
+
+
+
