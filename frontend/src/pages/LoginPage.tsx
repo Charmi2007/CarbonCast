@@ -6,7 +6,6 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { KeyRound } from 'lucide-react';
-import apiClient from '../api/client';
 
 const LoginPage: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
@@ -22,18 +21,16 @@ const LoginPage: React.FC = () => {
     
     try {
       const formData = new FormData(e.currentTarget);
-      const data = Object.fromEntries(formData.entries());
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
       
-      const res = await apiClient.post('/auth/login', data);
+      await login(email, password);
       
-      if (res.data.status === 'success') {
-        await login(res.data.token, res.data.user);
-        const from = (location.state as any)?.from?.pathname || '/community';
-        navigate(from, { replace: true });
-      }
+      const from = (location.state as any)?.from?.pathname || '/community';
+      navigate(from, { replace: true });
     } catch (error: any) {
       setStatus('error');
-      setErrorMsg(error.response?.data?.detail || 'Invalid email or password.');
+      setErrorMsg(error.message || 'Invalid email or password.');
     }
   };
 

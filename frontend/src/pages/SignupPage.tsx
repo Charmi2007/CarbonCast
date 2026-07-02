@@ -6,13 +6,12 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { Sparkles, ShieldCheck, Trophy, Target } from 'lucide-react';
-import apiClient from '../api/client';
 
 const SignupPage: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,18 +20,16 @@ const SignupPage: React.FC = () => {
     
     try {
       const formData = new FormData(e.currentTarget);
-      const data = Object.fromEntries(formData.entries());
+      const name = formData.get('name') as string;
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
       
-      const res = await apiClient.post('/auth/signup', data);
-      
-      if (res.data.status === 'success') {
-        await login(res.data.token, res.data.user);
-        // Step 2 of Onboarding: Redirect directly to Calculator
-        navigate('/calculator?onboarding=true');
-      }
+      await signUp(name, email, password);
+      // Step 2 of Onboarding: Redirect directly to Calculator
+      navigate('/calculator?onboarding=true');
     } catch (error: any) {
       setStatus('error');
-      setErrorMsg(error.response?.data?.detail || 'Failed to create account. Please try again.');
+      setErrorMsg(error.message || 'Failed to create account. Please try again.');
     }
   };
 
