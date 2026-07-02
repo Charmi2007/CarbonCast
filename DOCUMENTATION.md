@@ -1,72 +1,54 @@
 # CarbonCast — Full Technical System Documentation
 
-Welcome to the comprehensive technical documentation for **CarbonCast**, an AI-powered carbon footprint estimator, dynamic sandbox simulator, and personalized sustainability tracker. 
-
-This document is structured to be readable for both **non-technical stakeholders** (who want to understand the business value, user flow, and design logic) and **technical engineers** (who require details on math, algorithms, API endpoints, and class structures).
+Welcome to the comprehensive technical documentation for **CarbonCast**, an AI-powered carbon footprint estimator, dynamic sandbox simulator, and personalized sustainability tracker.
 
 ---
 
-## 1. The 5W + 1H Product Framework (Expanded)
+## 1. The 5W + 1H Product Framework
 
-### WHO
-*   **For Non-Technical Readers**: Designed for individual citizens, eco-conscious consumers, students, and home occupants looking to reduce utility bills and understand their personal climate impact. It requires **no account registration or social login**, ensuring 100% user privacy.
-*   **For Technical Readers**: React Vite frontend client sending requests, FastAPI Python server orchestrating data, and MongoDB Atlas cloud storage.
+The 5W + 1H framework defines the purpose, design decisions, and core architecture of CarbonCast:
 
-### WHAT
-*   **For Non-Technical Readers**: An interactive web calculator that tells you your carbon footprint, roasts you if it's high, helps you set personal goals with drag-and-drop sliders, and lets you download a checklist to your phone.
-*   **For Technical Readers**: A machine learning regression model built with scikit-learn (`LinearRegression`) trained on a 500-sample CSV dataset, integrated with dynamic debounced simulate endpoints and browser-local quest caches.
-
-### WHEN
-*   **For Non-Technical Readers**: Used immediately to get a footprint score. Used long-term (every few weeks) to recalculate and check if your footprint graph has gone down.
-*   **For Technical Readers**: Short-term calculations via `POST /api/v1/calculate`, real-time sliders querying `POST /simulate` debounced by 400ms, and chronological polling via `GET /history` filtered by IDs.
-
-### WHERE
-*   **For Non-Technical Readers**: Accessed on any web browser on your phone, laptop, or tablet. Data is stored privately on your browser and securely in a cloud database.
-*   **For Technical Readers**: Hosted on localhost/port 5000 (backend) and port 5173 (frontend). Document writes are pushed to a remote MongoDB Atlas database cluster.
-
-### WHY
-*   **For Non-Technical Readers**: Standard calculators are boring and treat everyone the same. CarbonCast gamifies it like an RPG, gives personalized quests, and lets you play around with numbers.
-*   **For Technical Readers**: Replaces simple arithmetic rule cards with an ML pipeline mapping multivariable correlations (collinear dependencies of waste, travel fuel, and diet types).
-
-### HOW
-*   **For Non-Technical Readers**: By estimating footprint from 11 easy lifestyle questions, using smart sliders, or skipping the form in 2 clicks.
-*   **For Technical Readers**: Preprocesses categorical/numerical data via `ColumnTransformer`, imputes missing data using median values, and outputs prediction.
+*   **WHO (Target Audience & Systems)**: 
+    CarbonCast is designed for individuals, households, and eco-conscious citizens who want a realistic understanding of their environmental impact. From a system perspective, it connects a React (Vite) frontend client to a FastAPI (Python) backend server, storing calculations in a MongoDB Atlas database. It operates with zero registration requirements to preserve complete user privacy.
+*   **WHAT (Core Solution)**: 
+    It is a machine-learning-driven carbon estimator. Instead of using generic multiplication rules, it maps 11 lifestyle inputs to a trained Linear Regression model to calculate annual emissions, provides a real-time sandbox to simulate lifestyle changes, roasts high footprints with witty AI messaging, and tracks progress locally.
+*   **WHEN (Usage Milestones)**: 
+    Users immediately get their carbon score using 2-click lifestyle presets. During their session, they adjust sandbox sliders to identify realistic targets and export their checklist. Long-term, they return periodically (e.g., bi-weekly) to recalculate and log their progress on a local journey trend chart.
+*   **WHERE (Hosting & Storage)**: 
+    The application runs locally on standard web browsers. The backend API is hosted on port 5000 and the frontend on port 5173. Calculation history is saved in a secure MongoDB Atlas cloud cluster, while individual milestones, quest progress, and calculation IDs are cached locally in the browser's `localStorage` to maintain user anonymity.
+*   **WHY (Problem & ML Advantage)**: 
+    Traditional carbon calculators are boring spreadsheets that rely on static, linear assumptions. CarbonCast uses machine learning to find complex multivariable correlations in real-world lifestyle data (such as how travel distance interacts with fuel type or how diets offset waste). This enables personalized estimations, Explainable AI breakdowns, and interactive gamified tracking.
+*   **HOW (Process Flow)**: 
+    Inputs are collected via synchronized range sliders and number inputs. The backend pre-processes this data, runs it through a trained Scikit-Learn pipeline (`model.pkl`), calculates the mathematical contribution of each variable, stores the record, and renders the interactive dashboard results.
 
 ---
 
 ## 2. Data Analysis & The Machine Learning Pipeline
 
-### What was done in Data Analysis?
-*   **For Non-Technical Readers**: 
-    We analyzed a dataset of 500 people's lifestyles to find what drives high carbon emissions. The analysis revealed that:
-    1.  **Transport is key**: Long commutes in petrol/diesel cars and frequent flights are the biggest contributors.
-    2.  **Diet matters**: Mixed diets (including beef/pork) add significant carbon, whereas vegan/vegetarian diets subtract carbon.
-    3.  **Positive offset**: Planting trees acts as a direct negative emissions factor, helping offset daily footprints.
-*   **For Technical Readers**:
-    1.  **Dataset Load**: Loaded `dataset/carboncast.csv` using Pandas.
-    2.  **Distribution Profile**: Evaluated the target column `Total_CO2e`. The dataset features a mean footprint of $271.72\text{ kg CO₂e}$ with a standard deviation of $80.87\text{ kg}$.
-    3.  **Multicollinearity Checks**: Identified key collinear correlations, such as how fuel type changes the impact of travel distance, or how home type correlates with electricity usage.
+### Data Analysis Overview
+We analyzed a dataset of 500 records representing diverse community lifestyles (`dataset/carboncast.csv`) to understand what factors most heavily drive carbon emissions. The analysis revealed that:
+*   **Weekly Commutes**: Driving petrol or diesel vehicles is the leading daily source of emissions, whereas walking, cycling, or using public transit significantly lower the total.
+*   **Airplane Travel**: Annual flights add a substantial, non-linear spike to a user's footprint.
+*   **Dietary Choices**: Mixed meat diets add carbon, while vegan and vegetarian lifestyles act as negative/offsetting factors.
+*   **Utility Bills**: High electricity consumption is directly tied to heavy AC use.
+*   **Tree Offsets**: Planting trees acts as a direct negative emissions factor, offsetting footprints.
 
 ### Understanding Regression & Linear Regression
-*   **For Non-Technical Readers**: 
-    *   **Regression** is a statistical tool used to predict a precise number (like your exact carbon footprint in kilograms) rather than just a category (like "High" or "Low").
-    *   **Linear Regression** calculates a baseline "starting footprint" (intercept) and then adds or subtracts kilograms based on your answers. It's like a scale where every slider movement adds or removes specific weights.
-*   **For Technical Readers**:
-    Linear Regression models the target variable ($Y$) as a linear combination of feature variables ($X_i$) multiplied by learned slopes ($\beta_i$):
-    \[Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots + \beta_n X_n + \epsilon\]
-    *   **Intercept ($\beta_0$)**: $93.1853\text{ kg CO₂e}$ (the baseline footprint if all numerical features were zero).
-    *   **Distance Travelled ($X_1$)**: $+0.0861\text{ kg CO₂e}$ per km.
-    *   **Electricity ($X_2$)**: $+0.6809\text{ kg CO₂e}$ per kWh.
-    *   **Flights ($X_3$)**: $+1.2960\text{ kg CO₂e}$ per trip.
-    *   **Vegan Diet ($X_4$)**: Subtraction of $-0.0133\text{ kg}$ from the baseline.
+In machine learning, **Regression** is a task where a model is trained to predict a **continuous numerical value** (like a footprint in kilograms of CO₂) rather than classifying inputs into categories (like "High" or "Low").
 
-### Explainable AI (XAI) Implementation
-*   **For Non-Technical Readers**: 
-    Instead of hiding the AI's math, we show the exact contribution of each factor (e.g., how many kilograms of carbon were added by your flights or subtracted by your trees).
-*   **For Technical Readers**:
-    Since the model is linear, the absolute contribution of feature $i$ is calculated directly:
-    \[\text{Contribution}_i = \beta_i \times X_i\]
-    This is displayed in the **AI Driver Analysis** chart on the dashboard, making the model's predictions fully transparent.
+**Linear Regression** calculates a baseline footprint (the intercept) and then adds or subtracts weight based on the user's choices. It finds the mathematically optimal "line of best fit" through the dataset. The relationship is represented as:
+
+\[Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots + \beta_n X_n + \epsilon\]
+
+Where:
+*   \(Y\): Predicted carbon footprint (`Total_CO2e` in kg).
+*   \(\beta_0\): The intercept (**93.1853 kg**), representing the baseline emissions of a user.
+*   \(\beta_i\): Learned coefficients (weights) for each lifestyle choice \(X_i\). For example, every kilometer driven ($X_1$) adds $+0.0861\text{ kg}$ to the target footprint, while a vegan diet ($X_4$) subtracts $-0.0133\text{ kg}$ from it.
+
+### Explainable AI (XAI)
+Because the model is linear, we can calculate the **exact contribution** of each answer to the user's score:
+\[\text{Contribution}_i = \beta_i \times X_i\]
+Instead of keeping the AI's predictions a mystery, the dashboard displays these values in the **AI Driver Analysis** chart, showing the user exactly how many kilograms of carbon each of their habits added or subtracted.
 
 ---
 
@@ -194,33 +176,43 @@ classDiagram
 
 ---
 
-## 4. Technical Spec: What Was Done in the Frontend
+## 4. Frontend Specifications & Features
 
-*   **For Non-Technical Readers**: 
-    We redesigned the interface to make it engaging, interactive, and fast. Instead of filling out long forms, users can get an estimate in **2 clicks** using lifestyle presets. On the results page, they can drag sliders to see how small changes reduce their emissions, copy their goals to their clipboard, and view a visual trend graph of their progress.
-*   **For Technical Readers**:
-    *   **Technologies Used**: React, Vite, TypeScript, Tailwind CSS, Recharts (for charts), Framer Motion (for animations), Lucide Icons, and React Hook Form.
-    *   **Features & Architecture**:
-        1.  **Fast Start Presets**: Step 0 autocompletes form values using pre-defined templates (`Eco-Champion`, `Average Joe`, `High Consumer`).
-        2.  **Form Bypass (`handleFastSubmit`)**: Submits form values directly, bypassing remaining steps.
-        3.  **Bidirectional Synchronized Controls**: Links range sliders and number input boxes to the same state. Includes dynamic badges (e.g. *"Low Commute"*).
-        4.  **Simulation Sandbox**: Uses a debounced (400ms) effect hook to query the `/simulate` endpoint as sliders are dragged.
-        5.  **Clipboard Exporter (`copyActionPlan`)**: Compiles goals into clean Markdown and copies them to the clipboard.
-        6.  **Journey Progress Line Chart**: Filters global history records against IDs stored in `localStorage.getItem('my_calcs')` to plot a chronological trend.
+The user interface is built using **React, Vite, TypeScript, and Tailwind CSS**. It focuses on reducing entry friction, displaying interactive results, and encouraging repeat usage:
+
+1.  **Lifestyle Presets (Quick Start)**:
+    Step 0 features preset cards (`Eco-Champion`, `Average Joe`, `High Consumer`). Clicking a card instantly autocompletes the form inputs using pre-defined templates.
+2.  **Form-Bypass Fast Calculate**:
+    Allows users to click a preset and hit **"🚀 Fast Calculate"** to submit the estimation immediately, bypassing the 11-question wizard in just 2 clicks.
+3.  **Synchronized Visual Sliders**:
+    Pairs range sliders and numeric input boxes with synchronized states. Features real-time descriptive tags (e.g. *"Heavy AC Usage"*) to make numbers easy to understand.
+4.  **Live What-If Simulation Sandbox**:
+    Interactive sliders on the dashboard let users adjust reduction percentages (e.g., *“Reduce travel mileage by 20%”*). The app queries the backend simulator real-time and shows updated carbon predictions and saved emissions.
+5.  **Journey Progress Line Chart**:
+    Plots a chronological line chart of the user's historical scores. It filters global calculations against a list of saved IDs in the browser's `localStorage` (`my_calcs`), creating a visual incentive to return and re-calculate.
+6.  **Humorous AI Climate Roast & Review**:
+    Displays a humorous, satirical assessment of the user's carbon footprint based on their score (e.g., joking about penguins sending bills to high emitters), making the results engaging.
+7.  **Class-Based Personalized Quests**:
+    Assigns users to an Eco-Class (*VIP*, *Pragmatist*, or *Guardian*) based on their score. Features custom quests that are dynamically filtered using their calculator answers, automatically hiding inapplicable tasks (like AC or flight offsets if they don't own an AC or fly).
+8.  **Action Plan Clipboard Exporter**:
+    Pre-populates a checklist based on their inputs, lets them add custom goals, and copies the plan to their clipboard in clean Markdown to save in their personal notes.
+9.  **Downloadable PDF Reports**:
+    Allows users to download a professional PDF report containing their score, equivalents, breakdown charts, and recommendations.
 
 ---
 
-## 5. Technical Spec: What Was Done in the Backend
+## 5. Backend Specifications & Data Flow
 
-*   **For Non-Technical Readers**: 
-    We built a fast backend server that processes your answers, runs them through the trained AI model to calculate your emissions, saves your results, and generates printable PDF reports.
-*   **For Technical Readers**:
-    *   **Technologies Used**: FastAPI, Uvicorn, Scikit-Learn, Pandas, PyMongo (for MongoDB), ReportLab (for PDFs), and Matplotlib (for static charts).
-    *   **Features & Architecture**:
-        1.  **ML Inference Engine (`predictor.py`)**: Loads the serialized Scikit-Learn pipeline (`model.pkl`) to make predictions and extract feature coefficients.
-        2.  **Simulation Engine (`simulator.py`)**: Computes hypothetical emissions reductions.
-        3.  **MongoDB Handler (`database.py`)**: Connects to the database and automatically falls back to an in-memory dictionary-mock database if connection fails.
-        4.  **PDF Report Compiler (`report.py`)**: Generates charts and compiles them into a printable PDF report.
+The backend is built using **FastAPI** and **Uvicorn**, serving as the central coordinator for predictions, database writes, simulations, and PDF generation:
+
+1.  **ML Inference Engine (`predictor.py`)**:
+    Loads the Scikit-Learn pipeline (`model.pkl`) to make predictions and compute individual feature coefficients during calculations.
+2.  **Simulation Engine (`simulator.py`)**:
+    Calculates carbon reductions for sandbox queries.
+3.  **MongoDB Connection (`database.py`)**:
+    Connects to the MongoDB Atlas cluster to log and retrieve calculations. Automatically falls back to an in-memory dictionary database if the cloud cluster is unreachable.
+4.  **PDF Report Compiler (`report.py`)**:
+    Generates static pie and bar charts, compiles recommendation summaries, and builds a printable PDF report.
 
 ---
 
