@@ -73,30 +73,7 @@ export const CommunityPage: React.FC = () => {
     try {
       const res = await apiClient.get('/posts');
       const postList = Array.isArray(res.data) ? res.data : res.data.posts || [];
-      
-      // Inject seed posts for Dia Mirza and John Abraham at the top to guarantee social discovery
-      const seedPosts = [
-        {
-          id: "seed_ja_1",
-          user_id: "user_ja",
-          user_name: "John Abraham",
-          text: "Swapped my daily gym transit to cycling! Saved 3.2 kg CO₂e. 💪🚲 #sustainablefitness",
-          category: "transport",
-          carbon_saved: 3.2,
-          timestamp: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: "seed_dm_1",
-          user_id: "user_dm",
-          user_name: "Dia Mirza",
-          text: "Hosted a zero-waste community composting workshop today. Everyone starts small! 🍂🌱 #compostwins",
-          category: "lifestyle",
-          carbon_saved: 8.5,
-          timestamp: new Date(Date.now() - 3600000 * 3).toISOString()
-        }
-      ];
-
-      setPosts([...seedPosts, ...postList]);
+      setPosts(postList);
     } catch (error) {
       console.error('Failed to fetch community posts', error);
     } finally {

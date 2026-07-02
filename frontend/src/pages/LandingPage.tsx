@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Leaf, BarChart3, Globe, Sparkles } from 'lucide-react';
+import { ArrowRight, Leaf, BarChart3, Globe, Sparkles, Flame, MessageSquare, LayoutGrid } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { useAuth } from '../context/AuthContext';
+import apiClient from '../api/client';
 
 const LandingPage: React.FC = () => {
+  const { user } = useAuth();
   const [cleanEnergy, setCleanEnergy] = useState(30);
   const [commuteSaved, setCommuteSaved] = useState(50);
+  const [latestRecordId, setLatestRecordId] = useState<string | null>(null);
   
   // Calculate simulated savings based on quick inputs
   const simulatedSavings = Math.round((cleanEnergy * 12.5) + (commuteSaved * 0.45 * 52));
+
+  useEffect(() => {
+    if (user) {
+      const fetchLatest = async () => {
+        try {
+          const res = await apiClient.get('/results/my-history');
+          if (res.data && res.data.length > 0) {
+            // Sort by date to get the newest
+            const sorted = [...res.data].sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            setLatestRecordId(sorted[0].id);
+          }
+        } catch (e) {
+          console.error("Failed to load user history", e);
+        }
+      };
+      fetchLatest();
+    }
+  }, [user]);
 
   return (
     <div className="flex flex-col items-center overflow-x-hidden min-h-screen">
@@ -25,33 +47,77 @@ const LandingPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/25 text-brand-primary text-xs font-semibold mb-6 uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" /> Empowering Sustainability Champions
-          </div>
+          {user ? (
+            <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-400 text-xs font-semibold mb-6 uppercase tracking-wider">
+              <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500" /> Keep the 5-Day Streak Burning!
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/25 text-brand-primary text-xs font-semibold mb-6 uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" /> Empowering Sustainability Champions
+            </div>
+          )}
           
-          <h1 className="text-5xl md:text-7xl font-black text-brand-text leading-tight mb-6 tracking-tight">
-            Track your sustainability wins. <br />
-            <span className="bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent bg-clip-text text-transparent">
-              Visualize your impact.
-            </span>
-          </h1>
+          {user ? (
+            <h1 className="text-5xl md:text-7xl font-black text-brand-text leading-tight mb-6 tracking-tight">
+              Welcome back, <br />
+              <span className="bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent bg-clip-text text-transparent">
+                {user.name}
+              </span>
+            </h1>
+          ) : (
+            <h1 className="text-5xl md:text-7xl font-black text-brand-text leading-tight mb-6 tracking-tight">
+              Track your sustainability wins. <br />
+              <span className="bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent bg-clip-text text-transparent">
+                Visualize your impact.
+              </span>
+            </h1>
+          )}
           
-          <p className="text-base md:text-lg text-brand-textSecondary max-w-3xl mx-auto mb-10 leading-relaxed">
-            Welcome to CarbonCast. Build your personalized Eco Profile, log daily green deeds, compete in carbon quests, and connect with a community of climate-conscious leaders.
-          </p>
+          {user ? (
+            <p className="text-base md:text-lg text-brand-textSecondary max-w-3xl mx-auto mb-10 leading-relaxed">
+              Your Eco Profile is active. Ready to log today's avoided emissions, check the leaderboard tips, or share your compost wins with the community feed?
+            </p>
+          ) : (
+            <p className="text-base md:text-lg text-brand-textSecondary max-w-3xl mx-auto mb-10 leading-relaxed">
+              Welcome to CarbonCast. Build your personalized Eco Profile, log daily green deeds, compete in carbon quests, and connect with a community of climate-conscious leaders.
+            </p>
+          )}
           
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-            <Link to="/signup">
-              <Button size="lg" className="w-full sm:w-auto gap-2 px-8 py-6 rounded-2xl shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/45 transition-all text-base font-bold bg-gradient-to-r from-brand-primary to-brand-secondary text-white">
-                Create Eco Profile & Begin <ArrowRight className="w-5 h-5 animate-pulse" />
-              </Button>
-            </Link>
-            <Link to="/about">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-6 rounded-2xl border-brand-border text-brand-text font-medium">
-                Explore Methodology
-              </Button>
-            </Link>
-          </div>
+          {user ? (
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
+              <Link to="/community">
+                <Button size="lg" className="w-full sm:w-auto gap-2 px-8 py-6 rounded-2xl shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/45 transition-all text-base font-bold bg-gradient-to-r from-brand-primary to-brand-secondary text-white">
+                  <MessageSquare className="w-5 h-5" /> Community Feed
+                </Button>
+              </Link>
+              {latestRecordId ? (
+                <Link to={`/dashboard/${latestRecordId}`}>
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto gap-2 px-8 py-6 rounded-2xl border-brand-border text-brand-text font-semibold">
+                    <LayoutGrid className="w-5 h-5 text-brand-primary" /> My Carbon Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/calculator">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto gap-2 px-8 py-6 rounded-2xl border-brand-border text-brand-text font-semibold">
+                    <BarChart3 className="w-5 h-5 text-brand-primary" /> Complete Eco Scorecard
+                  </Button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
+              <Link to="/signup">
+                <Button size="lg" className="w-full sm:w-auto gap-2 px-8 py-6 rounded-2xl shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/45 transition-all text-base font-bold bg-gradient-to-r from-brand-primary to-brand-secondary text-white">
+                  Create Eco Profile & Begin <ArrowRight className="w-5 h-5 animate-pulse" />
+                </Button>
+              </Link>
+              <Link to="/about">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-6 rounded-2xl border-brand-border text-brand-text font-medium">
+                  Explore Methodology
+                </Button>
+              </Link>
+            </div>
+          )}
         </motion.div>
       </section>
 
@@ -143,24 +209,26 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Psychology-based Signup Callout */}
-      <section className="w-full max-w-5xl px-4 pb-20">
-        <div className="p-10 bg-gradient-to-br from-brand-surface to-brand-bgAlt border border-brand-primary/15 rounded-3xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-          <div>
-            <h3 className="text-2xl md:text-3xl font-bold text-brand-text mb-3">Ready to Join the Movement?</h3>
-            <p className="text-sm text-brand-textSecondary max-w-xl leading-relaxed mb-6 md:mb-0">
-              Create your compulsory eco-account to permanently store your habits. By logging in, you unlock our fully interactive community dashboard, feed posts, and offset tracker.
-            </p>
+      {!user && (
+        <section className="w-full max-w-5xl px-4 pb-20">
+          <div className="p-10 bg-gradient-to-br from-brand-surface to-brand-bgAlt border border-brand-primary/15 rounded-3xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div>
+              <h3 className="text-2xl md:text-3xl font-bold text-brand-text mb-3">Ready to Join the Movement?</h3>
+              <p className="text-sm text-brand-textSecondary max-w-xl leading-relaxed mb-6 md:mb-0">
+                Create your compulsory eco-account to permanently store your habits. By logging in, you unlock our fully interactive community dashboard, feed posts, and offset tracker.
+              </p>
+            </div>
+            <div className="shrink-0 w-full md:w-auto">
+              <Link to="/signup" className="w-full">
+                <Button size="lg" className="w-full gap-2 px-8 py-5 rounded-xl bg-brand-primary text-white font-bold">
+                  Begin Your Journey <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="shrink-0 w-full md:w-auto">
-            <Link to="/signup" className="w-full">
-              <Button size="lg" className="w-full gap-2 px-8 py-5 rounded-xl bg-brand-primary text-white font-bold">
-                Begin Your Journey <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 };
