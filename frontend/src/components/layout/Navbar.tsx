@@ -11,6 +11,7 @@ export const Navbar: React.FC = () => {
   const navLinks = [
     { name: 'Calculator', path: '/calculator' },
     { name: 'Community', path: '/community' },
+    { name: 'Leaderboard', path: '/leaderboard' },
     { name: 'Quests', path: '/quests' },
     { name: 'Tips', path: '/tips' },
     { name: 'About', path: '/about' },
@@ -56,6 +57,9 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-orange-500 bg-orange-500/10 border border-orange-500/25 px-2.5 py-1 rounded-full">
+                  🔥 5d Streak
+                </div>
                 <div className="flex items-center gap-2 text-sm font-medium text-brand-text">
                   <UserIcon className="w-4 h-4 text-brand-primary" />
                   {user.name}

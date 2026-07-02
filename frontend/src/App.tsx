@@ -15,6 +15,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const CommunityPage = lazy(() => import('./pages/CommunityPage'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 
 const PageLoader = () => (
   <div className="flex h-[50vh] items-center justify-center">
@@ -54,6 +55,7 @@ function App() {
             <Route path="dashboard/:id" element={<DashboardPage />} />
             <Route path="quests" element={<QuestPage />} />
             <Route path="community" element={<CommunityPage />} />
+            <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="tips" element={<TipsPage />} />
           </Route>
         </Route>
