@@ -21,11 +21,11 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl overflow-hidden bg-white border border-brand-border flex items-center justify-center group-hover:border-brand-primary transition-colors">
+            <div className="w-9 h-9 rounded-xl overflow-hidden bg-white border border-brand-border flex items-center justify-center group-hover:border-brand-primary transition-colors p-0.5">
               <img 
                 src="/logo.jpg" 
                 alt="CarbonCast Logo Mark" 
-                className="w-full h-auto object-cover scale-[1.4] -translate-y-[2px]" 
+                className="w-full h-full object-contain" 
               />
             </div>
             <div className="flex flex-col">

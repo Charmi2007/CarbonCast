@@ -9,11 +9,11 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center gap-3 mb-4 group">
-              <div className="w-9 h-9 rounded-xl overflow-hidden bg-white border border-brand-border flex items-center justify-center group-hover:border-brand-primary transition-colors">
+              <div className="w-9 h-9 rounded-xl overflow-hidden bg-white border border-brand-border flex items-center justify-center group-hover:border-brand-primary transition-colors p-0.5">
                 <img 
                   src="/logo.jpg" 
                   alt="CarbonCast Logo Mark" 
-                  className="w-full h-auto object-cover scale-[1.4] -translate-y-[2px]" 
+                  className="w-full h-full object-contain" 
                 />
               </div>
               <div className="flex flex-col">
