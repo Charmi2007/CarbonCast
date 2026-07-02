@@ -33,3 +33,28 @@ class HistoryOut(BaseModel):
     class Config:
         from_attributes = True
         populate_by_name = True
+
+
+class UserSignup(BaseModel):
+    name: str = Field(..., min_length=2)
+    email: str
+    password: str = Field(..., min_length=6)
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserOut(BaseModel):
+    id: str
+    name: str
+    email: str
+
+class AuthResponse(BaseModel):
+    status: str
+    token: str
+    user: UserOut
+
+class SyncGuestInput(BaseModel):
+    record_ids: list[str]
+
+

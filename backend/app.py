@@ -1,6 +1,8 @@
 import os
 import logging
+import json
 from datetime import datetime
+from typing import Optional
 from bson import ObjectId
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
@@ -12,12 +14,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from database import get_db
-from schemas import FootprintInput, SimulateInput, GoalInput, HistoryOut
+from schemas import FootprintInput, SimulateInput, GoalInput, HistoryOut, UserSignup, UserLogin, UserOut, AuthResponse, SyncGuestInput
+from auth import get_password_hash, verify_password, create_access_token, get_current_user, get_required_user
 import predictor
 import analytics
 import simulator
 import recommendations as rec_module
 import report as report_module
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("carboncast")
@@ -195,7 +199,7 @@ def api_get_model_info():
 
 
 @app.post("/api/v1/calculate")
-def api_calculate(payload: dict):
+def api_calculate(payload: dict, current_user: Optional[dict] = Depends(get_current_user)):
     try:
         db = get_db()
         mapped_data = _map_frontend_to_predictor(payload)
@@ -226,6 +230,7 @@ def api_calculate(payload: dict):
         explanation = predictor.explain_prediction(mapped_data)
 
         document = {
+            "userId": current_user["id"] if current_user else None,
             "personal": payload.get("personal", {}),
             "home": payload.get("home", {}),
             "transportation": payload.get("transportation", {}),
@@ -642,3 +647,135 @@ def get_charts():
     if not existing:
         raise HTTPException(status_code=404, detail="No charts generated yet. Call /predict first.")
     return JSONResponse(existing)
+
+
+@app.post("/api/v1/auth/signup", response_model=AuthResponse, status_code=201)
+def signup(payload: UserSignup):
+    try:
+        db = get_db()
+        email_clean = payload.email.strip().lower()
+        
+        # Check if user already exists
+        existing = db.users.find_one({"email": email_clean})
+        if existing:
+            raise HTTPException(status_code=400, detail="A user with this email already exists")
+            
+        password_hash = get_password_hash(payload.password)
+        user_doc = {
+            "name": payload.name,
+            "email": email_clean,
+            "password_hash": password_hash,
+            "createdAt": datetime.utcnow()
+        }
+        
+        result = db.users.insert_one(user_doc)
+        user_id = str(result.inserted_id)
+        
+        token = create_access_token(data={"sub": user_id})
+        return {
+            "status": "success",
+            "token": token,
+            "user": {
+                "id": user_id,
+                "name": payload.name,
+                "email": email_clean
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Signup failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/auth/login", response_model=AuthResponse)
+def login(payload: UserLogin):
+    try:
+        db = get_db()
+        email_clean = payload.email.strip().lower()
+        
+        user = db.users.find_one({"email": email_clean})
+        if not user or not verify_password(payload.password, user.get("password_hash", "")):
+            raise HTTPException(status_code=400, detail="Invalid email or password")
+            
+        user_id = str(user["_id"])
+        token = create_access_token(data={"sub": user_id})
+        return {
+            "status": "success",
+            "token": token,
+            "user": {
+                "id": user_id,
+                "name": user["name"],
+                "email": user["email"]
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Login failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/auth/me")
+def get_me(current_user: dict = Depends(get_required_user)):
+    return {
+        "status": "success",
+        "user": {
+            "id": current_user["id"],
+            "name": current_user["name"],
+            "email": current_user["email"]
+        }
+    }
+
+
+@app.get("/api/v1/results/my-history", response_model=list[HistoryOut])
+def get_my_history(current_user: dict = Depends(get_required_user)):
+    try:
+        db = get_db()
+        docs = db.records.find({"userId": current_user["id"]}).sort("_id", -1)
+        results = []
+        for doc in docs:
+            mapped_inputs = doc.get("mapped_inputs") or {}
+            results_field = doc.get("results") or {}
+            pred_val = mapped_inputs.get("prediction") or (results_field.get("totalCarbonFootprint", 0) * 1000.0)
+            results.append(HistoryOut(
+                id=str(doc["_id"]),
+                timestamp=doc.get("createdAt") or datetime.utcnow(),
+                transport_km=mapped_inputs.get("transport_km") or 0.0,
+                electricity_kwh=mapped_inputs.get("electricity_kwh") or 0.0,
+                meat_meals=mapped_inputs.get("meat_meals") or 0.0,
+                flights=mapped_inputs.get("flights") or 0.0,
+                shopping=mapped_inputs.get("shopping") or 0.0,
+                prediction=pred_val,
+                carbon_score=results_field.get("carbonScore") or 50.0,
+                category=results_field.get("category") or "Moderate"
+            ))
+        return results
+    except Exception as e:
+        logger.exception("Fetching history failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/auth/sync-guest-data")
+def sync_guest_data(payload: SyncGuestInput, current_user: dict = Depends(get_required_user)):
+    try:
+        db = get_db()
+        valid_ids = []
+        for rid in payload.record_ids:
+            if ObjectId.is_valid(rid):
+                valid_ids.append(ObjectId(rid))
+            else:
+                valid_ids.append(rid)
+        
+        result = db.records.update_many(
+            {"_id": {"$in": valid_ids}, "userId": {"$in": [None, ""]}},
+            {"$set": {"userId": current_user["id"]}}
+        )
+        return {
+            "status": "success",
+            "synced_count": result.modified_count
+        }
+    except Exception as e:
+        logger.exception("Syncing guest data failed")
+        raise HTTPException(status_code=500, detail=str(e))
+

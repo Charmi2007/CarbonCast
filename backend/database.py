@@ -142,6 +142,37 @@ class MockCollection:
             deleted_count = len(keys_to_delete)
         return DeleteResult()
 
+    def update_many(self, filter_query, update_operation):
+        set_fields = update_operation.get("$set", {})
+        modified_count = 0
+        
+        filter_ids = []
+        if "_id" in filter_query and isinstance(filter_query["_id"], dict) and "$in" in filter_query["_id"]:
+            filter_ids = [str(x) for x in filter_query["_id"]["$in"]]
+            
+        for doc in self.data.values():
+            match = True
+            if filter_ids:
+                if str(doc.get("_id")) not in filter_ids:
+                    match = False
+            for k, v in filter_query.items():
+                if k == "_id":
+                    continue
+                if isinstance(v, dict) and "$in" in v:
+                    if doc.get(k) not in v["$in"]:
+                        match = False
+                elif doc.get(k) != v:
+                    match = False
+            if match:
+                for set_key, set_val in set_fields.items():
+                    doc[set_key] = set_val
+                modified_count += 1
+                
+        class UpdateResult:
+            modified_count = len(filter_ids) if filter_ids else modified_count
+        return UpdateResult()
+
+
 class MockDatabase:
     def __init__(self):
         self.collections = {}

@@ -9,3 +9,6 @@ reportlab
 joblib
 pydantic
 python-dotenv
+passlib[bcrypt]
+pyjwt
+
