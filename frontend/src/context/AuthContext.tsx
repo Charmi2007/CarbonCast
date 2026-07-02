@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('token', newToken);
     setToken(newToken);
     setUser(userData);
-    await syncGuestData();
+    syncGuestData();
   };
 
   const logout = () => {
@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (res.data.status === 'success') {
             setUser(res.data.user);
             // Also attempt sync in case a previous attempt failed but token is valid
-            await syncGuestData();
+            syncGuestData();
           }
         } catch (error) {
           console.error("Auth check failed", error);

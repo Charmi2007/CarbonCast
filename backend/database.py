@@ -26,7 +26,10 @@ try:
     client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=2000)
     # Check connection
     client.server_info()
-    db = client.get_database()
+    try:
+        db = client.get_database()
+    except Exception:
+        db = client['carboncast']
     # If the URI doesn't specify a database name, default to 'carboncast'
     if db.name == 'admin' or not db.name:
         db = client['carboncast']
