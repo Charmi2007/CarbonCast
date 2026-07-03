@@ -285,6 +285,34 @@ def api_calculate(payload: dict, current_user: Optional[dict] = Depends(get_curr
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/v1/results/my-history", response_model=list[HistoryOut])
+def get_my_history(current_user: dict = Depends(get_required_user)):
+    try:
+        db = get_db()
+        docs = db.records.find({"userId": current_user["id"]}).sort("_id", -1)
+        results = []
+        for doc in docs:
+            mapped_inputs = doc.get("mapped_inputs") or {}
+            results_field = doc.get("results") or {}
+            pred_val = mapped_inputs.get("prediction") or (results_field.get("totalCarbonFootprint", 0) * 1000.0)
+            results.append(HistoryOut(
+                id=str(doc["_id"]),
+                timestamp=doc.get("createdAt") or datetime.utcnow(),
+                transport_km=mapped_inputs.get("transport_km") or 0.0,
+                electricity_kwh=mapped_inputs.get("electricity_kwh") or 0.0,
+                meat_meals=mapped_inputs.get("meat_meals") or 0.0,
+                flights=mapped_inputs.get("flights") or 0.0,
+                shopping=mapped_inputs.get("shopping") or 0.0,
+                prediction=pred_val,
+                carbon_score=results_field.get("carbonScore") or 50.0,
+                category=results_field.get("category") or "Moderate"
+            ))
+        return results
+    except Exception as e:
+        logger.exception("Fetching history failed")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/v1/results/{record_id}")
 def api_get_result(record_id: str):
     db = get_db()
@@ -728,32 +756,7 @@ def get_me(current_user: dict = Depends(get_required_user)):
     }
 
 
-@app.get("/api/v1/results/my-history", response_model=list[HistoryOut])
-def get_my_history(current_user: dict = Depends(get_required_user)):
-    try:
-        db = get_db()
-        docs = db.records.find({"userId": current_user["id"]}).sort("_id", -1)
-        results = []
-        for doc in docs:
-            mapped_inputs = doc.get("mapped_inputs") or {}
-            results_field = doc.get("results") or {}
-            pred_val = mapped_inputs.get("prediction") or (results_field.get("totalCarbonFootprint", 0) * 1000.0)
-            results.append(HistoryOut(
-                id=str(doc["_id"]),
-                timestamp=doc.get("createdAt") or datetime.utcnow(),
-                transport_km=mapped_inputs.get("transport_km") or 0.0,
-                electricity_kwh=mapped_inputs.get("electricity_kwh") or 0.0,
-                meat_meals=mapped_inputs.get("meat_meals") or 0.0,
-                flights=mapped_inputs.get("flights") or 0.0,
-                shopping=mapped_inputs.get("shopping") or 0.0,
-                prediction=pred_val,
-                carbon_score=results_field.get("carbonScore") or 50.0,
-                category=results_field.get("category") or "Moderate"
-            ))
-        return results
-    except Exception as e:
-        logger.exception("Fetching history failed")
-        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.post("/api/v1/auth/sync-guest-data")
