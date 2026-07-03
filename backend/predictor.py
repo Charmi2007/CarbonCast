@@ -245,10 +245,10 @@ def carbon_category(score: float) -> str:
 
 def emission_breakdown(data: dict) -> dict:
     raw = {
-        "Transport": data["transport_km"] * FACTORS["transport_km"] / 365,
-        "Electricity": data["electricity_kwh"] * FACTORS["electricity_kwh"] / 365,
-        "Food": data["meat_meals"] * FACTORS["meat_meals"] / 52 + data["flights"] * FACTORS["flights"],
-        "Shopping": data["shopping"] * FACTORS["shopping"] / 12,
+        "Transport": data["transport_km"] * FACTORS["transport_km"] + data["flights"] * FACTORS["flights"],
+        "Electricity": data["electricity_kwh"] * FACTORS["electricity_kwh"],
+        "Food": data["meat_meals"] * FACTORS["meat_meals"],
+        "Shopping": data["shopping"] * FACTORS["shopping"],
     }
     total = sum(raw.values()) or 1
     return {k: round(v / total * 100, 2) for k, v in raw.items()}, raw
